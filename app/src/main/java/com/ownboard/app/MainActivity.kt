@@ -1,31 +1,20 @@
 package com.ownboard.app
 
+import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
-import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
-import com.ownboard.app.databinding.ActivityMainBinding
+import android.widget.Button
 
-class MainActivity : AppCompatActivity() {
-
-    lateinit var binding: ActivityMainBinding
-
+class MainActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
 
-        binding = ActivityMainBinding.inflate(layoutInflater)
-        val view = binding.root
-        setContentView(view)
-
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
+        val btnManage = findViewById<Button>(R.id.btn_manage_layouts)
+        
+        btnManage.setOnClickListener {
+            val intent = Intent(this, ManageLayoutsActivity::class.java)
+            startActivity(intent)
         }
-
-        binding.btnGreet.setOnClickListener {
-            binding.tvGreet.setText(getString(R.string.hello_android))
-        }
-
     }
 }
