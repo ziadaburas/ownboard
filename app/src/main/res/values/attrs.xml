@@ -1,0 +1,6 @@
+<resources>
+    <declare-styleable name="keyAttrs">
+        <attr name="text" format="string" />
+        <attr name="popupKeys" format="string" />
+    </declare-styleable>
+</resources>
