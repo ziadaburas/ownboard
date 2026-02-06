@@ -289,6 +289,97 @@ constructor(
         }
     }
     private fun showAltChars() {
+        popupContainer.removeAllViews()
+        popupContainer.visibility = View.INVISIBLE 
+        popupContainer.setBackgroundColor(Color.WHITE)
+
+        // 1. الحساب المبدئي للمكان لتحديد الاتجاه
+        val btnLoc = IntArray(2)
+        getLocationOnScreen(btnLoc)
+        
+        // حساب العرض المتوقع للقائمة كاملة
+        val estimatedWidth = (btnWidth * popupKeys.size)
+        
+        // === الشرط الذي كان ناقصاً ===
+        // هل مكان الزر الحالي + عرض القائمة سيخرج عن عرض الشاشة؟
+        // إذا نعم، نعتبر الحالة "معكوسة" (Reversed)
+        val isReversed = (btnLoc[0] + estimatedWidth) > screenWidth
+
+        // 2. ترتيب القائمة بناءً على الحالة
+        // إذا عكسنا القائمة (عشان تظهر يسار الزر)، نعكس ترتيب الحروف أيضاً لتكون قريبة من الإصبع
+        val listToShow = if (isReversed) popupKeys.reversed() else popupKeys
+
+        listToShow.forEach { altChar ->
+            val altBtn = Button(context).apply {
+                text = altChar
+                setTextColor(Color.BLACK)
+                setBackgroundColor(Color.LTGRAY)
+                textSize = 18f
+                setPadding(10, 0, 10, 0)
+                minWidth = 0 
+                minimumWidth = 0
+                typeface = Typeface.DEFAULT_BOLD
+                layoutParams = LinearLayout.LayoutParams(
+                    btnWidth, 
+                    dpToPx(45f).toInt()
+                ).apply {
+                    setMargins(2, 2, 2, 2)
+                }
+                
+                setOnClickListener {
+                    OwnboardIME.ime.sendKeyPress(altChar)
+                    popupContainer.visibility = View.GONE
+                    isPopupVisible = false
+                    popupBtns.clear()
+                    selectedIndex = 0
+                    isLongPressed = false
+                    this@All.setBackgroundColor(0xFF2D2D2D.toInt())
+                }
+            }
+            popupBtns.add(altBtn)
+            popupContainer.addView(altBtn)
+        }
+
+        // 3. الحساب النهائي للموقع والإظهار
+        popupContainer.post {
+            if (!isPopupVisible) return@post
+
+            val rootViewLoc = IntArray(2)
+            // نعيد جلب مكان الزر للتأكد
+            getLocationOnScreen(btnLoc)
+            OwnboardIME.ime.rootView.getLocationOnScreen(rootViewLoc)
+
+            val actualWidth = popupContainer.width.toFloat()
+            val actualHeight = popupContainer.height.toFloat()
+
+            // === حساب X (الموقع الأفقي) ===
+            var x: Float
+            
+            if (isReversed) {
+                // الحالة: الزر في اليمين والمساحة لا تكفي
+                // المعادلة: (مكان الزر) - (مكان الروت) + (عرض الزر) - (عرض القائمة)
+                // هذا يجعل الحافة اليمنى للقائمة محاذية للحافة اليمنى للزر
+                x = (btnLoc[0] - rootViewLoc[0] + btnWidth - actualWidth)
+            } else {
+                // الحالة العادية: الزر في اليسار
+                // القائمة تبدأ من يسار الزر
+                x = (btnLoc[0] - rootViewLoc[0]).toFloat()
+            }
+
+            // حماية إضافية: لا تسمح للقائمة بالخروج من يسار الشاشة
+            if (x < 0) x = 0f
+
+            // === حساب Y (الموقع العمودي) ===
+            val y = (btnLoc[1] - rootViewLoc[1] - actualHeight - dpToPx(2f))
+
+            popupContainer.x = x
+            popupContainer.y = y
+            
+            popupContainer.visibility = View.VISIBLE
+            popupContainer.bringToFront()
+        }
+    }
+    private fun showAltChars1() {
         // 1. إخفاء الحاوية تماماً وتنظيفها
         popupContainer.visibility = View.INVISIBLE // نستخدم INVISIBLE وليس GONE مؤقتاً ليتمكن النظام من قياسها
         popupContainer.removeAllViews()
