@@ -17,6 +17,41 @@ constructor(
     defStyle: Int = android.R.attr.buttonStyle,
 ) : Key(context, attrs, defStyle) {
 
+    companion object {
+        // ... (المتغيرات الموجودة سابقاً مثل capslock وغيرها) ...
+
+        // ============================================================
+        // قوائم الوظائف المتاحة (Static Lists for Dropdowns)
+        // ============================================================
+        
+        val CLICK_FUNCTIONS = listOf(
+            "", // خيار فارغ
+            "sendText",      // إرسال نص
+            "sendCode",      // إرسال كود زر
+            "sendSpecial",   // وظيفة خاصة (Shift/Ctrl/Alt)
+            "switchLang",    // تغيير اللغة
+            "switchSymbols", // تبديل الرموز
+            "delete",        // حذف
+            "openEmoji",     // فتح الإيموجي
+            "openClipboard"  // فتح الحافظة
+        )
+
+        val LONG_PRESS_FUNCTIONS = listOf(
+            "",
+            "loop",          // تكرار الحرف عند التعليق
+            "showPopup",     // إظهار القائمة المنبثقة
+            "sendText",
+            "sendCode",
+            "switchLang"
+        )
+
+        val SCROLL_FUNCTIONS = listOf(
+            "",
+            "sendText",
+            "sendCode",
+            "switchLang"
+        )
+    }
     open var click = ""
     set(value) {
         field = value
@@ -62,7 +97,15 @@ constructor(
                     OwnboardIME.ime.delete() 
                 }
             }
-
+            // داخل دالة معالجة الأزرار
+            "openClipboard" -> {
+                onClickFn = {
+                    //OwnboardIME.ime.delete() 
+                    OwnboardIME.ime.toggleClipboard()
+                }
+                // OwnboardIME.ime.keyboardContainer.visibility = View.GONE // اختياري: إخفاء الكيبورد
+            }
+ 
             else -> {onClickFn={}}
         }
     }

@@ -1,4 +1,4 @@
-package com.ownboard.app
+package com.ownboard.app.db
 
 import android.content.ContentValues
 import android.content.Context
@@ -238,5 +238,36 @@ class LayoutDatabase(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
             put(COL_JSON, json)
         }
         db.insertWithOnConflict(TABLE_NAME, null, values, SQLiteDatabase.CONFLICT_REPLACE)
+    }
+
+    fun getAllLayouts(): List<Pair<String, String>> {
+        val layouts = mutableListOf<Pair<String, String>>()
+        val db = this.readableDatabase
+        val cursor = db.query(TABLE_NAME, arrayOf(COL_LANG, COL_JSON), null, null, null, null, null)
+
+        with(cursor) {
+            while (moveToNext()) {
+                val lang = getString(getColumnIndexOrThrow(COL_LANG))
+                val jsonData = getString(getColumnIndexOrThrow(COL_JSON))
+                layouts.add(Pair(lang, jsonData))
+            }
+        }
+        cursor.close()
+        return layouts
+    }
+
+    fun resetToDefaultLayouts() {
+        val db = this.writableDatabase
+        db.delete(TABLE_NAME, null, null) // Clear all existing layouts
+        insertDefaultLayout(db, "ar", DEFAULT_AR_JSON)
+        insertDefaultLayout(db, "en", DEFAULT_EN_JSON)
+    }
+    fun resetSingleLayoutToDefault(lang: String) {
+        val defaultJson = when(lang) {
+            "ar" -> DEFAULT_AR_JSON
+            "en" -> DEFAULT_EN_JSON
+            else -> return // لغة غير معروفة ليس لها افتراضي
+        }
+        updateLayout(lang, defaultJson)
     }
 }

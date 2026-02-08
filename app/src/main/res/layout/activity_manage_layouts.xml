@@ -3,13 +3,40 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:gravity="center">
+    android:padding="16dp">
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="شاشة إدارة التخطيطات\n(سيتم العمل عليها قريباً)"
-        android:gravity="center"
-        android:textSize="20sp"/>
+        android:text="إدارة التخطيطات"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="16dp"
+        android:layout_gravity="center_horizontal"/>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginBottom="16dp">
+
+        <LinearLayout
+            android:id="@+id/layouts_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center_horizontal"/>
+    </ScrollView>
+
+    <Button
+        android:id="@+id/reset_layouts_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="إعادة تعيين التخطيطات الافتراضية"
+        android:layout_gravity="center_horizontal"
+        android:paddingStart="24dp"
+        android:paddingEnd="24dp"
+        android:paddingTop="12dp"
+        android:paddingBottom="12dp"/>
 
 </LinearLayout>

@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#F5F5F5">
+
+    <TextView
+        android:id="@+id/editor_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="تعديل الزر"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:padding="16dp"
+        android:background="#FFFFFF"
+        android:elevation="4dp"
+        android:gravity="center"/>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView 
+                android:text="البيانات الأساسية" 
+                android:textStyle="bold" 
+                android:layout_width="wrap_content" 
+                android:layout_height="wrap_content" 
+                android:layout_marginBottom="8dp"/>
+                
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:weightSum="3">
+                <EditText android:id="@+id/input_text" android:hint="النص" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:background="@android:drawable/editbox_background" android:padding="10dp" android:layout_marginEnd="4dp"/>
+                <EditText android:id="@+id/input_hint" android:hint="تلميح" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:background="@android:drawable/editbox_background" android:padding="10dp" android:layout_marginEnd="4dp"/>
+                <EditText android:id="@+id/input_weight" android:hint="الوزن" android:inputType="numberDecimal" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:background="@android:drawable/editbox_background" android:padding="10dp"/>
+            </LinearLayout>
+
+            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#CCCCCC" android:layout_marginTop="16dp" android:layout_marginBottom="16dp"/>
+
+            <TextView 
+                android:text="عند النقر (Click)" 
+                android:textStyle="bold" 
+                android:textColor="#2196F3" 
+                android:layout_width="wrap_content" 
+                android:layout_height="wrap_content" 
+                android:layout_marginBottom="8dp"/>
+                
+            <Spinner android:id="@+id/spinner_click" android:layout_width="match_parent" android:layout_height="50dp" android:background="@android:drawable/btn_dropdown" android:layout_marginBottom="8dp"/>
+            
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+                <EditText android:id="@+id/input_text_click" android:hint="textToSend" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="4dp" android:textSize="14sp"/>
+                <EditText android:id="@+id/input_code_click" android:hint="codeToSend" android:inputType="numberSigned" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textSize="14sp"/>
+            </LinearLayout>
+
+            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#CCCCCC" android:layout_marginTop="16dp" android:layout_marginBottom="16dp"/>
+
+            <TextView 
+                android:text="عند الضغط المطول" 
+                android:textStyle="bold" 
+                android:textColor="#FF5722" 
+                android:layout_width="wrap_content" 
+                android:layout_height="wrap_content" 
+                android:layout_marginBottom="8dp"/>
+                
+            <Spinner android:id="@+id/spinner_long_press" android:layout_width="match_parent" android:layout_height="50dp" android:background="@android:drawable/btn_dropdown" android:layout_marginBottom="8dp"/>
+            
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+                <EditText android:id="@+id/input_text_long" android:hint="textToSendLP" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="4dp" android:textSize="14sp"/>
+                <EditText android:id="@+id/input_code_long" android:hint="codeToSendLP" android:inputType="numberSigned" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textSize="14sp"/>
+            </LinearLayout>
+
+            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#CCCCCC" android:layout_marginTop="16dp" android:layout_marginBottom="16dp"/>
+
+            <TextView 
+                android:text="عند السحب (Swipe)" 
+                android:textStyle="bold" 
+                android:textColor="#4CAF50" 
+                android:layout_width="wrap_content" 
+                android:layout_height="wrap_content" 
+                android:layout_marginBottom="8dp"/>
+            
+            <TextView android:text="سحب لليسار:" android:textSize="12sp" android:layout_marginBottom="4dp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+            <Spinner android:id="@+id/spinner_swipe_left" android:layout_width="match_parent" android:layout_height="40dp" android:background="@android:drawable/btn_dropdown" android:layout_marginBottom="4dp"/>
+            
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="12dp">
+                <EditText android:id="@+id/input_text_left" android:hint="textLeft" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="4dp" android:textSize="14sp"/>
+                <EditText android:id="@+id/input_code_left" android:hint="codeLeft" android:inputType="numberSigned" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textSize="14sp"/>
+            </LinearLayout>
+
+            <TextView android:text="سحب لليمين:" android:textSize="12sp" android:layout_marginBottom="4dp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+            <Spinner android:id="@+id/spinner_swipe_right" android:layout_width="match_parent" android:layout_height="40dp" android:background="@android:drawable/btn_dropdown" android:layout_marginBottom="4dp"/>
+            
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+                <EditText android:id="@+id/input_text_right" android:hint="textRight" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="4dp" android:textSize="14sp"/>
+                <EditText android:id="@+id/input_code_right" android:hint="codeRight" android:inputType="numberSigned" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textSize="14sp"/>
+            </LinearLayout>
+
+        </LinearLayout>
+    </ScrollView>
+
+    <Button
+        android:id="@+id/btn_save_key"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:text="حفظ التعديلات"
+        android:textSize="18sp"
+        android:backgroundTint="#2196F3"
+        android:textColor="#FFFFFF"
+        android:layout_margin="16dp"/>
+
+</LinearLayout>
