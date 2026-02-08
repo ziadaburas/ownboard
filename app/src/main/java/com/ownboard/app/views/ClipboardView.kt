@@ -3,6 +3,7 @@ package com.ownboard.app.view
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.content.Intent
 import android.graphics.Color
 import android.util.AttributeSet
 import android.view.Gravity
@@ -16,6 +17,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.ownboard.app.OwnboardIME
 import com.ownboard.app.db.ClipboardDbHelper
+import com.ownboard.app.ui.ClipboardManageActivity // تأكد من استيراد كلاس شاشة الإدارة
 
 class ClipboardView @JvmOverloads constructor(
     context: Context,
@@ -168,7 +170,6 @@ class ClipboardView @JvmOverloads constructor(
                 hideDialog()
             } 
             OwnboardIME.ime.toggleClipboard()
-            
         }
 
         goToTopBtn = createTopButton("\u25b2", btnParams) {
@@ -177,9 +178,19 @@ class ClipboardView @JvmOverloads constructor(
         goToDownBtn = createTopButton("\u25bc", btnParams) {
             if (adapter.itemCount > 0) recyclerView.smoothScrollToPosition(adapter.itemCount - 1)
         }
+        
+        // --- تعديل زر الإعدادات لفتح شاشة إدارة الحافظة ---
         goToSettingsBtn = createTopButton("\u2699", btnParams) {
-            // هنا يمكنك فتح الإعدادات أو فعل شيء آخر، حالياً تغلق الحافظة كما في كودك الأصلي
-             OwnboardIME.ime.toggleClipboard()
+            try {
+                val intent = Intent(context, ClipboardManageActivity::class.java)
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) // ضروري لأننا نفتح من Service
+                context.startActivity(intent)
+                
+                // إغلاق لوحة الحافظة في الكيبورد لكي يظهر التطبيق
+                OwnboardIME.ime.toggleClipboard()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
 
         topRow.addView(goToSettingsBtn)
