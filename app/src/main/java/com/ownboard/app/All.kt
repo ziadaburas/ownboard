@@ -42,14 +42,16 @@ constructor(
             "showPopup",     // إظهار القائمة المنبثقة
             "sendText",
             "sendCode",
-            "switchLang"
+            "switchLang",
+             "holdSpecial"
         )
 
         val SCROLL_FUNCTIONS = listOf(
             "",
             "sendText",
             "sendCode",
-            "switchLang"
+            "switchLang",
+             "holdSpecial"  
         )
     }
     open var click = ""
@@ -151,6 +153,11 @@ constructor(
                     Key.capslock.notifyListeners()
                 }
             }
+            "holdSpecial"->{
+                onLongPressFn = {
+                    enable(1)
+                }
+            }
             else-> onLongPressFn={}
         }
     }
@@ -169,7 +176,7 @@ constructor(
                 }
             }
             "switchLang"->{
-                onRightScrollFn = {
+                onLeftScrollFn  = {
                     OwnboardIME.ime.switchLang()
                     Key.ctrl.notifyListeners()
                     Key.alt.notifyListeners()
@@ -177,7 +184,11 @@ constructor(
                     Key.capslock.notifyListeners()
                 }
             }
-           
+            "holdSpecial"->{
+                 onLeftScrollFn= {
+                    enable(1)
+                }
+            }
             else-> onLeftScrollFn={}
         }
     }
@@ -202,6 +213,11 @@ constructor(
                     Key.alt.notifyListeners()
                     Key.shift.notifyListeners()
                     Key.capslock.notifyListeners()
+                }
+            }
+            "holdSpecial"->{
+                onRightScrollFn = {
+                     enable(1)
                 }
             }
            
@@ -320,8 +336,8 @@ constructor(
     init {
        val params = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1f)
         layoutParams = params
-        Key.capslock.addListener { 
-            if(!isConstKey){
+        if(!isConstKey){
+            Key.capslock.addListener { 
                 var value = it ?: 0
                 if (value != 0) {
                     text = text.uppercase()

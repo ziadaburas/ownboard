@@ -16,6 +16,8 @@ import org.json.JSONObject
 import java.util.Collections
 import android.view.Gravity
 import com.ownboard.app.db.*
+import android.view.HapticFeedbackConstants
+
 
 class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedListener {
 
@@ -46,6 +48,7 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
     // ==========================================
     var keyboardHeightPortraitDp = 320f  // الارتفاع في الوضع العمودي
     var keyboardHeightLandscapeDp = 300f // الارتفاع في الوضع الأفقي (عادة يكون أقل)
+    var bottomPaddingDp = 10f
 
     init {
         ime = this
@@ -268,7 +271,75 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
 
                 keyboardContainer.addView(rowLayout)
             }
+        // ============================================================
+            // كود الشريط السفلي (مع إلغاء الحواف والمسافات)
+            // ============================================================
+            if (bottomPaddingDp > 0) {
+                val navBar = LinearLayout(this).apply {
+                    orientation = LinearLayout.HORIZONTAL
+                    layoutParams = LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        dpToPx(bottomPaddingDp)
+                    )
+                    gravity = Gravity.TOP // محاذاة العناصر داخل الشريط للأعلى
+                    setBackgroundColor(Color.parseColor("#1A1A1A"))
+                }
 
+                // دالة مساعدة لإنشاء الأزرار بنفس الخصائص
+                // دالة مساعدة لإنشاء الأزرار مع إضافة الاهتزاز
+                fun createNavBarBtn(textStr: String, onClick: () -> Unit): TextView {
+                    return TextView(this).apply {
+                        text = textStr
+                        textSize = bottomPaddingDp
+                        setTextColor(Color.LTGRAY)
+                        
+                        includeFontPadding = false 
+                        setPadding(0, 0, 0, 0)
+                        
+                        gravity = Gravity.TOP or Gravity.CENTER_HORIZONTAL
+                        
+                        layoutParams = LinearLayout.LayoutParams(
+                            dpToPx(50f), 
+                            ViewGroup.LayoutParams.MATCH_PARENT
+                        ).apply {
+                            setMargins(0, 0, 0, 0)
+                        }
+                        
+                        setOnClickListener { 
+                            // هذا السطر يضيف الاهتزاز
+                            it.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+                            onClick() 
+                        }
+                    }
+                }
+
+                // 1. زر اليسار: تغيير الكيبورد
+                val switchImeBtn = createNavBarBtn("\u2328") {
+                    val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as android.view.inputmethod.InputMethodManager
+                    imm.showInputMethodPicker()
+                }
+
+                // 2. مساحة فارغة في المنتصف
+                val centerSpace = View(this).apply {
+                    layoutParams = LinearLayout.LayoutParams(
+                        0,
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        1f
+                    )
+                    setOnTouchListener { _, _ -> true }
+                }
+
+                // 3. زر اليمين: إغلاق الكيبورد
+                val hideKeyboardBtn = createNavBarBtn("\u25BC") {
+                    requestHideSelf(0)
+                }
+
+                navBar.addView(switchImeBtn)
+                navBar.addView(centerSpace)
+                navBar.addView(hideKeyboardBtn)
+
+                keyboardContainer.addView(navBar)
+            }
         } catch (e: Exception) {
             Log.e("OwnboardIME", "Error building keyboard: ${e.message}")
             e.printStackTrace()
@@ -287,9 +358,10 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
         if (currentAppPackage.isNotEmpty()) {
             appLangDb.setAppLanguage(currentAppPackage, currentLang)
         }
+        
 
         Key.isSymbols.value = false
-        Key.capslock.value = 0
+        Key.capslock.value = 0 
     }
 
     fun switchSymbols(isSymbols: Boolean) {
@@ -352,16 +424,44 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        // 1. التعامل مع زر الرجوع
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            // أ. إذا كانت الحافظة مفتوحة، أغلقها فقط
+            if (::clipboardView.isInitialized && clipboardView.visibility == View.VISIBLE) {
+                toggleClipboard() // هذا سيخفي الحافظة ويظهر الكيبورد
+                return true // استهلاك الحدث (لا تغلق التطبيق)
+            }
+            
+            // ب. إذا كان الكيبورد ظاهراً، قم بإخفائه
+            if (isInputViewShown) {
+                requestHideSelf(0) // دالة النظام لإغلاق الـ IME
+                return true // استهلاك الحدث
+            }
+        }
+
+        // 2. التعامل مع Gamepad Mapper (إذا لم يكن زر الرجوع)
         if (::mapper.isInitialized && event != null && mapper.processKey(event)) {
             return true
         }
+        
         return super.onKeyDown(keyCode, event)
     }
 
     override fun onKeyUp(keyCode: Int, event: KeyEvent?): Boolean {
+        // التحقق من زر الرجوع في حالة "الرفع" (رفع الاصبع عن الزر)
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            // إذا كانت الحافظة مفتوحة أو الكيبورد ظاهراً، نستهلك الحدث هنا أيضاً
+            // حتى لا يمر للتطبيق الخلفي
+            if ((::clipboardView.isInitialized && clipboardView.visibility == View.VISIBLE) || isInputViewShown) {
+                return true
+            }
+        }
+
+        // التعامل مع Gamepad Mapper
         if (::mapper.isInitialized && event != null && mapper.processKey(event)) {
             return true
         }
+        
         return super.onKeyUp(keyCode, event)
     }
 }

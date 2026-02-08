@@ -183,7 +183,7 @@ constructor(
         offset = 0
         return true
     }
-    open fun actionUp(e: MotionEvent): Boolean {
+    open fun actionUp1(e: MotionEvent): Boolean {
        
         isHoldKey = false
         longPressHandler.removeCallbacks(longPressRunnable)
@@ -196,7 +196,7 @@ constructor(
             // Key.shift.notifyListeners()
             // Key.capslock.notifyListeners()
             onLeftScrollFn()
-            onRightScrollFn()
+            //onRightScrollFn()
             setBackgroundColor(0xFF2D2D2D.toInt())
             
         }
@@ -210,8 +210,52 @@ constructor(
         
         return true
     }
+    open fun actionUp(e: MotionEvent): Boolean {
+    
+        isHoldKey = false
+        longPressHandler.removeCallbacks(longPressRunnable)
+        val pressDuration = e.eventTime - e.downTime
+        
+        // إعادة تعيين لون الخلفية
+        if (!isSpecialKey) setBackgroundColor(0xFF2D2D2D.toInt())
+
+        // تحديد عتبة السحب (المسافة المطلوبة لاعتبارها سحبة)
+        val threshold = btnWidth / 2
+
+        // التحقق من السحب (يجب أن يكون الوقت قصيراً والمسافة كافية)
+        if (pressDuration < longPressTimeout) {
+            
+            // 1. السحب لليمين (Offset موجب وأكبر من العتبة)
+            if (offset > threshold) post {
+                // Key.ctrl.notifyListeners()
+                // Key.alt.notifyListeners()
+                onRightScrollFn() // استدعاء دالة اليمين فقط
+                setBackgroundColor(0xFF2D2D2D.toInt())
+                //return true // نخرج من الدالة حتى لا يتم تنفيذ onClick
+            }
+            
+            // 2. السحب لليسار (Offset سالب وأصغر من سالب العتبة)
+            else if (offset < -threshold) post {
+                // Key.shift.notifyListeners()
+                // Key.capslock.notifyListeners()
+                onLeftScrollFn() // استدعاء دالة اليسار فقط
+                setBackgroundColor(0xFF2D2D2D.toInt())
+                //return true // نخرج من الدالة حتى لا يتم تنفيذ onClick
+            }
+        }
+
+        // التحقق من أن الإصبع ما زال فوق الزر للنقر العادي
+        if (!isActionUp(e.rawX.toInt(), e.rawY.toInt())) return false
+        
+        // تنفيذ النقر العادي إذا لم يتحقق شرط السحب
+        if (pressDuration < longPressTimeout) {
+            onClick()
+        }
+        
+        return true
+    }
     open fun actionMove(e: MotionEvent): Boolean {
-        offset = Math.abs(e.x - touchStartX).toInt()
+        offset = (e.x - touchStartX).toInt()
         return true
     }
     override fun onTouchEvent(e: MotionEvent): Boolean {
