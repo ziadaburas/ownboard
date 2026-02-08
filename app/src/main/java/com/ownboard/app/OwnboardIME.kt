@@ -46,9 +46,9 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
     // ==========================================
     // متغيرات التحكم بارتفاع الكيبورد (يمكنك تعديل القيم هنا)
     // ==========================================
-    var keyboardHeightPortraitDp = 320f  // الارتفاع في الوضع العمودي
+    var keyboardHeightPortraitDp = 340f  // الارتفاع في الوضع العمودي
     var keyboardHeightLandscapeDp = 300f // الارتفاع في الوضع الأفقي (عادة يكون أقل)
-    var bottomPaddingDp = 10f
+    var bottomPaddingDp = 15f
 
     init {
         ime = this

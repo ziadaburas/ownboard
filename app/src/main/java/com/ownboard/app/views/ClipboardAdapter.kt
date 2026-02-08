@@ -23,7 +23,7 @@ class ClipboardAdapter(
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ClipViewHolder {
         // حساب الارتفاع الثابت (مثلاً 60dp)
-        val fixedHeight = (60 * parent.context.resources.displayMetrics.density).toInt()
+        val fixedHeight = (100 * parent.context.resources.displayMetrics.density).toInt()
 
         val btn = Button(parent.context).apply {
             setTextColor(Color.WHITE)
