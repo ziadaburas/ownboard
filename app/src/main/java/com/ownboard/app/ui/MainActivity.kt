@@ -12,9 +12,16 @@ class MainActivity : Activity() {
         setContentView(R.layout.activity_main)
 
         val btnManage = findViewById<Button>(R.id.btn_manage_layouts)
+        val btnClipboard = findViewById<Button>(R.id.btn_manage_clipboard)
         
         btnManage.setOnClickListener {
             val intent = Intent(this, ManageLayoutsActivity::class.java)
+            startActivity(intent)
+        }
+
+        // الانتقال لشاشة إدارة الحافظة الجديدة
+        btnClipboard.setOnClickListener {
+            val intent = Intent(this, ClipboardManageActivity::class.java)
             startActivity(intent)
         }
     }

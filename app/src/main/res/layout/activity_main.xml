@@ -23,6 +23,16 @@
         android:text="إدارة التخطيطات"
         android:textSize="18sp"
         android:backgroundTint="#2196F3"
+        android:textColor="#FFFFFF"
+        android:layout_marginBottom="20dp"/>
+
+    <Button
+        android:id="@+id/btn_manage_clipboard"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:text="إدارة الحافظة"
+        android:textSize="18sp"
+        android:backgroundTint="#4CAF50"
         android:textColor="#FFFFFF"/>
 
 </LinearLayout>

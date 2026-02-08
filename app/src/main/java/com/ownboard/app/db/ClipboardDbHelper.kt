@@ -35,9 +35,22 @@ class ClipboardDbHelper(context: Context) : SQLiteOpenHelper(context, "clipboard
             put("text", text)
             put("timestamp", System.currentTimeMillis())
         }
+        // إذا كان موجوداً، نحدث الوقت فقط
         val id = db.insertWithOnConflict("clipboard", null, values, SQLiteDatabase.CONFLICT_REPLACE)
-        if (id == -1L) { // إذا كان موجوداً، نحدث الوقت فقط
-             db.update("clipboard", values, "text = ?", arrayOf(text))
+    }
+
+    // دالة جديدة لتحديث النص عند التعديل
+    fun updateClipText(id: Long, newText: String): Boolean {
+        val db = writableDatabase
+        val values = ContentValues().apply {
+            put("text", newText)
+            put("timestamp", System.currentTimeMillis()) // تحديث الوقت ليظهر في الأعلى كأحدث استخدام
+        }
+        return try {
+            val rows = db.update("clipboard", values, "id = ?", arrayOf(id.toString()))
+            rows > 0
+        } catch (e: Exception) {
+            false // في حال كان النص مكرر (بسبب قيد UNIQUE)
         }
     }
 
@@ -55,7 +68,6 @@ class ClipboardDbHelper(context: Context) : SQLiteOpenHelper(context, "clipboard
     fun getClipboardItems(): List<ClipboardItem> {
         val list = ArrayList<ClipboardItem>()
         val db = readableDatabase
-        // الترتيب: المثبت أولاً، ثم الأحدث
         val cursor = db.rawQuery(
             "SELECT * FROM clipboard ORDER BY is_pinned DESC, timestamp DESC LIMIT 100", 
             null
