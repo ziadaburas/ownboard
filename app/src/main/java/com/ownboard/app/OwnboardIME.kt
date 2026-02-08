@@ -28,14 +28,18 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
     lateinit var popupContainer: LinearLayout 
     lateinit var clipboardView: com.ownboard.app.view.ClipboardView
     
-    // متغير الاتصال بقاعدة البيانات
+    // متغيرات قواعد البيانات
     lateinit var dbHelper: LayoutDatabase
+    lateinit var appLangDb: AppLanguageDbHelper // قاعدة بيانات لغات التطبيقات الجديدة
 
     // مدير الحافظة للنظام
     private var clipboardManager: ClipboardManager? = null
 
     var currentLang = "ar"
     
+    // متغير لحفظ اسم حزمة التطبيق الحالي (Package Name)
+    private var currentAppPackage: String = ""
+
     val backTexts = listOf("<>","</>","/**/","\"\"","''","()","{}","[]")
     
     // متغير المابر
@@ -47,10 +51,11 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
 
     override fun onCreate() {
         super.onCreate()
-        // تهيئة قاعدة البيانات
+        // تهيئة قواعد البيانات
         dbHelper = LayoutDatabase(this)
+        appLangDb = AppLanguageDbHelper(this) // تهيئة قاعدة بيانات التطبيقات
         
-        // تهيئة المابر (كودك الأصلي)
+        // تهيئة المابر
         mapper = UsbGamepadMapper(currentInputConnection)
 
         // 2. تهيئة مراقب الحافظة
@@ -102,21 +107,54 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
         rootView.addView(keyboardContainer)
         rootView.addView(popupContainer, FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT))
 
-        loadKeyboardFromDB("ar")
+        // ملاحظة: قمت بإزالة loadKeyboardFromDB("ar") من هنا
+        // لأننا سنقوم بتحميل اللغة الصحيحة في onStartInputView بناءً على التطبيق
 
         clipboardView = com.ownboard.app.view.ClipboardView(this)
         
-        // التعديل هنا: نجعل الارتفاع 0 مبدئياً، ونضبط الجاذبية للأسفل
         val clipParams = FrameLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT, 
-            0 // الارتفاع صفر، سنقوم بتحديثه عند الفتح
+            0 
         )
-        clipParams.gravity = Gravity.BOTTOM // مهم جداً
+        clipParams.gravity = Gravity.BOTTOM
         
         rootView.addView(clipboardView, clipParams)
         
         return rootView
     }
+
+    // ============================================================
+    // التعديل الرئيسي: التعرف على التطبيق وتحميل لغته المحفوظة
+    // ============================================================
+    override fun onStartInputView(info: EditorInfo?, restarting: Boolean) {
+        super.onStartInputView(info, restarting)
+
+        // الحصول على اسم حزمة التطبيق الحالي (مثل com.whatsapp أو com.facebook.katana)
+        if (info != null && info.packageName != null) {
+            currentAppPackage = info.packageName
+            // استرجاع اللغة المحفوظة لهذا التطبيق (أو ar كافتراضي)
+            currentLang = appLangDb.getAppLanguage(currentAppPackage)
+        } else {
+            // حالة احتياطية إذا لم نتمكن من معرفة التطبيق
+            currentAppPackage = ""
+        }
+
+        // تحميل لوحة المفاتيح بناءً على اللغة المسترجعة
+        loadKeyboardFromDB(currentLang)
+    }
+
+    // ============================================================
+    // التعديل الرئيسي: حفظ اللغة عند الخروج من حقل الكتابة أو التطبيق
+    // ============================================================
+    override fun onFinishInputView(finishingInput: Boolean) {
+        super.onFinishInputView(finishingInput)
+        
+        // حفظ اللغة الحالية للتطبيق الحالي قبل المغادرة لضمان حفظ الحالة
+        if (currentAppPackage.isNotEmpty()) {
+            appLangDb.setAppLanguage(currentAppPackage, currentLang)
+        }
+    }
+
     fun toggleClipboard() {
         if (clipboardView.visibility == View.VISIBLE) {
             // إغلاق الحافظة
@@ -124,27 +162,25 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
             keyboardContainer.visibility = View.VISIBLE
         } else {
             // فتح الحافظة
-            // 1. نأخذ ارتفاع الكيبورد الحالي
             val height = keyboardContainer.height
-            
-            // 2. نطبق الارتفاع على الحافظة
             if (height > 0) {
                 val params = clipboardView.layoutParams
                 params.height = height
                 clipboardView.layoutParams = params
             }
-            
-            // 3. التبديل
-            keyboardContainer.visibility = View.GONE // إخفاء الكيبورد
+            keyboardContainer.visibility = View.GONE 
             clipboardView.visibility = View.VISIBLE
         }
     }
+
     private fun loadKeyboardFromDB(lang: String) {
         val jsonLayout = dbHelper.getLayoutByLang(lang)
         if (jsonLayout.isNotEmpty()) {
             buildKeyboard(jsonLayout)
         } else {
             Log.e("OwnboardIME", "Layout not found for lang: $lang")
+            // محاولة تحميل العربية إذا لم توجد اللغة المطلوبة
+            if(lang != "ar") loadKeyboardFromDB("ar")
         }
     }
 
@@ -213,6 +249,7 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
     }
 
     fun switchLang() {
+        // تبديل اللغة
         if (currentLang == "ar") {
             currentLang = "en"
             loadKeyboardFromDB("en")
@@ -221,6 +258,11 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
             loadKeyboardFromDB("ar")
         }
         
+        // حفظ التغيير فوراً في قاعدة البيانات لضمان الحفظ حتى لو أغلق المستخدم التطبيق فجأة
+        if (currentAppPackage.isNotEmpty()) {
+            appLangDb.setAppLanguage(currentAppPackage, currentLang)
+        }
+
         Key.isSymbols.value = false
         Key.capslock.value = 0
     }
