@@ -2,6 +2,7 @@ package com.ownboard.app
 
 import android.content.ClipboardManager
 import android.content.Context
+import android.content.res.Configuration
 import android.inputmethodservice.InputMethodService
 import android.view.View
 import android.view.KeyEvent
@@ -16,7 +17,6 @@ import java.util.Collections
 import android.view.Gravity
 import com.ownboard.app.db.*
 
-// 1. إضافة واجهة الاستماع للحافظة
 class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedListener {
 
     companion object {
@@ -28,22 +28,24 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
     lateinit var popupContainer: LinearLayout 
     lateinit var clipboardView: com.ownboard.app.view.ClipboardView
     
-    // متغيرات قواعد البيانات
+    // قواعد البيانات
     lateinit var dbHelper: LayoutDatabase
-    lateinit var appLangDb: AppLanguageDbHelper // قاعدة بيانات لغات التطبيقات الجديدة
+    lateinit var appLangDb: AppLanguageDbHelper 
 
-    // مدير الحافظة للنظام
     private var clipboardManager: ClipboardManager? = null
 
     var currentLang = "ar"
-    
-    // متغير لحفظ اسم حزمة التطبيق الحالي (Package Name)
     private var currentAppPackage: String = ""
 
     val backTexts = listOf("<>","</>","/**/","\"\"","''","()","{}","[]")
     
-    // متغير المابر
     private lateinit var mapper: UsbGamepadMapper
+
+    // ==========================================
+    // متغيرات التحكم بارتفاع الكيبورد (يمكنك تعديل القيم هنا)
+    // ==========================================
+    var keyboardHeightPortraitDp = 320f  // الارتفاع في الوضع العمودي
+    var keyboardHeightLandscapeDp = 300f // الارتفاع في الوضع الأفقي (عادة يكون أقل)
 
     init {
         ime = this
@@ -51,36 +53,39 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
 
     override fun onCreate() {
         super.onCreate()
-        // تهيئة قواعد البيانات
         dbHelper = LayoutDatabase(this)
-        appLangDb = AppLanguageDbHelper(this) // تهيئة قاعدة بيانات التطبيقات
+        appLangDb = AppLanguageDbHelper(this) 
         
-        // تهيئة المابر
         mapper = UsbGamepadMapper(currentInputConnection)
 
-        // 2. تهيئة مراقب الحافظة
         clipboardManager = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         clipboardManager?.addPrimaryClipChangedListener(this)
     }
 
-    // 3. تنظيف المراقب عند الإغلاق
     override fun onDestroy() {
         super.onDestroy()
         clipboardManager?.removePrimaryClipChangedListener(this)
     }
 
-    // 4. الدالة التي تعمل عند نسخ أي نص في الهاتف
     override fun onPrimaryClipChanged() {
         if (clipboardManager?.hasPrimaryClip() == true) {
             val clipData = clipboardManager?.primaryClip
             if (clipData != null && clipData.itemCount > 0) {
                 val text = clipData.getItemAt(0).text?.toString() ?: ""
-                
-                // التأكد أن النص موجود وأن واجهة الحافظة جاهزة
                 if (text.isNotEmpty() && ::clipboardView.isInitialized) {
                     clipboardView.addClip(text)
                 }
             }
+        }
+    }
+
+    // دالة مساعدة لتحديد الارتفاع الحالي بناءً على الاتجاه
+    private fun getCurrentKeyboardHeight(): Float {
+        val configuration = resources.configuration
+        return if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            keyboardHeightLandscapeDp
+        } else {
+            keyboardHeightPortraitDp
         }
     }
 
@@ -92,7 +97,9 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
 
         keyboardContainer = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            val params = FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+            // استخدام دالة تحديد الارتفاع
+            val height = dpToPx(getCurrentKeyboardHeight())
+            val params = FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, height)
             params.gravity = Gravity.BOTTOM
             layoutParams = params
         }
@@ -106,9 +113,6 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
 
         rootView.addView(keyboardContainer)
         rootView.addView(popupContainer, FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT))
-
-        // ملاحظة: قمت بإزالة loadKeyboardFromDB("ar") من هنا
-        // لأننا سنقوم بتحميل اللغة الصحيحة في onStartInputView بناءً على التطبيق
 
         clipboardView = com.ownboard.app.view.ClipboardView(this)
         
@@ -124,32 +128,47 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
     }
 
     // ============================================================
-    // التعديل الرئيسي: التعرف على التطبيق وتحميل لغته المحفوظة
+    // إضافة هامة: تحديث الارتفاع عند تدوير الشاشة
     // ============================================================
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        
+        if (::keyboardContainer.isInitialized) {
+            // حساب الارتفاع الجديد
+            val newHeight = dpToPx(getCurrentKeyboardHeight())
+            
+            // تحديث حاوية الكيبورد
+            val params = keyboardContainer.layoutParams
+            params.height = newHeight
+            keyboardContainer.layoutParams = params
+
+            // تحديث الحافظة إذا كانت مفتوحة
+            if (clipboardView.visibility == View.VISIBLE) {
+                 val clipParams = clipboardView.layoutParams
+                 clipParams.height = newHeight
+                 clipboardView.layoutParams = clipParams
+            }
+            
+            // إعادة بناء الكيبورد لضبط الأوزان (Weights) إذا لزم الأمر
+            loadKeyboardFromDB(currentLang)
+        }
+    }
+
     override fun onStartInputView(info: EditorInfo?, restarting: Boolean) {
         super.onStartInputView(info, restarting)
 
-        // الحصول على اسم حزمة التطبيق الحالي (مثل com.whatsapp أو com.facebook.katana)
         if (info != null && info.packageName != null) {
             currentAppPackage = info.packageName
-            // استرجاع اللغة المحفوظة لهذا التطبيق (أو ar كافتراضي)
             currentLang = appLangDb.getAppLanguage(currentAppPackage)
         } else {
-            // حالة احتياطية إذا لم نتمكن من معرفة التطبيق
             currentAppPackage = ""
         }
 
-        // تحميل لوحة المفاتيح بناءً على اللغة المسترجعة
         loadKeyboardFromDB(currentLang)
     }
 
-    // ============================================================
-    // التعديل الرئيسي: حفظ اللغة عند الخروج من حقل الكتابة أو التطبيق
-    // ============================================================
     override fun onFinishInputView(finishingInput: Boolean) {
         super.onFinishInputView(finishingInput)
-        
-        // حفظ اللغة الحالية للتطبيق الحالي قبل المغادرة لضمان حفظ الحالة
         if (currentAppPackage.isNotEmpty()) {
             appLangDb.setAppLanguage(currentAppPackage, currentLang)
         }
@@ -157,17 +176,15 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
 
     fun toggleClipboard() {
         if (clipboardView.visibility == View.VISIBLE) {
-            // إغلاق الحافظة
             clipboardView.visibility = View.GONE
             keyboardContainer.visibility = View.VISIBLE
         } else {
-            // فتح الحافظة
-            val height = keyboardContainer.height
-            if (height > 0) {
-                val params = clipboardView.layoutParams
-                params.height = height
-                clipboardView.layoutParams = params
-            }
+            // التأكد من استخدام الارتفاع الصحيح عند الفتح
+            val currentHeight = dpToPx(getCurrentKeyboardHeight())
+            val params = clipboardView.layoutParams
+            params.height = currentHeight
+            clipboardView.layoutParams = params
+            
             keyboardContainer.visibility = View.GONE 
             clipboardView.visibility = View.VISIBLE
         }
@@ -179,7 +196,6 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
             buildKeyboard(jsonLayout)
         } else {
             Log.e("OwnboardIME", "Layout not found for lang: $lang")
-            // محاولة تحميل العربية إذا لم توجد اللغة المطلوبة
             if(lang != "ar") loadKeyboardFromDB("ar")
         }
     }
@@ -187,6 +203,13 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
     private fun buildKeyboard(jsonString: String) {
         try {
             keyboardContainer.removeAllViews()
+            
+            // التأكد من أن الحاوية تأخذ الارتفاع الصحيح قبل البناء
+            val totalHeightPx = dpToPx(getCurrentKeyboardHeight())
+            val containerParams = keyboardContainer.layoutParams
+            containerParams.height = totalHeightPx
+            keyboardContainer.layoutParams = containerParams
+
             val jsonObject = JSONObject(jsonString)
             
             val keysIterator = jsonObject.keys()
@@ -198,15 +221,19 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
 
             for (rowKey in keysList) {
                 val rowObj = jsonObject.getJSONObject(rowKey)
-                val rowHeight = rowObj.optDouble("height", 50.0).toFloat()
+                
+                // استخدام الوزن من ملف JSON، الافتراضي 1
+                val rowWeight = rowObj.optDouble("height", 1.0).toFloat()
                 val keysArray = rowObj.getJSONArray("keys")
 
                 val rowLayout = LinearLayout(this).apply {
                     orientation = LinearLayout.HORIZONTAL
                     layoutDirection = View.LAYOUT_DIRECTION_LTR 
+                    
                     layoutParams = LinearLayout.LayoutParams(
                         ViewGroup.LayoutParams.MATCH_PARENT,
-                        dpToPx(rowHeight)
+                        0, // الارتفاع 0 لأننا نعتمد على الوزن
+                        rowWeight // الوزن النسبي للصف
                     )
                 }
 
@@ -249,7 +276,6 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
     }
 
     fun switchLang() {
-        // تبديل اللغة
         if (currentLang == "ar") {
             currentLang = "en"
             loadKeyboardFromDB("en")
@@ -258,7 +284,6 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
             loadKeyboardFromDB("ar")
         }
         
-        // حفظ التغيير فوراً في قاعدة البيانات لضمان الحفظ حتى لو أغلق المستخدم التطبيق فجأة
         if (currentAppPackage.isNotEmpty()) {
             appLangDb.setAppLanguage(currentAppPackage, currentLang)
         }
@@ -268,7 +293,6 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
     }
 
     fun switchSymbols(isSymbols: Boolean) {
-        // منطق الرموز
     }
 
     fun sendKeyPress(text: String) {
@@ -320,17 +344,14 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
         return (dp * density + 0.5f).toInt()
     }
     
-    // === التعامل مع Gamepad Mapper ===
     override fun onStartInput(attribute: EditorInfo?, restarting: Boolean) {
         super.onStartInput(attribute, restarting)
-        // تحديث الاتصال للمابر
         if (::mapper.isInitialized) {
             mapper.setConnection(currentInputConnection)
         }
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
-        // التحقق من المابر
         if (::mapper.isInitialized && event != null && mapper.processKey(event)) {
             return true
         }
@@ -338,7 +359,6 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
     }
 
     override fun onKeyUp(keyCode: Int, event: KeyEvent?): Boolean {
-        // التحقق من المابر
         if (::mapper.isInitialized && event != null && mapper.processKey(event)) {
             return true
         }
