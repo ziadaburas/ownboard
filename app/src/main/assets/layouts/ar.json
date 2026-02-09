@@ -47,11 +47,11 @@
     "keys": [
       { "weight": 1.0, "text": "ش", "hint": "@", "click": "sendText", "longPress": "showPopup", "params": { "text": "ش", "popup": "@ • @gmail.com" } },
       { "weight": 1.0, "text": "س", "hint": "!", "click": "sendText", "longPress": "showPopup", "params": { "text": "س", "popup": "! !=" } },
-      { "weight": 1.0, "text": "ي", "hint": "~", "click": "sendText", "longPress": "showPopup", "params": { "text": "ي", "popup": "~" } },
+      { "weight": 1.0, "text": "ي", "hint": "ى ئ", "click": "sendText", "longPress": "showPopup", "params": { "text": "ي", "popup": "ى ئ" } },
       { "weight": 1.0, "text": "ب", "hint": "?", "click": "sendText", "longPress": "showPopup", "params": { "text": "ب", "popup": "?" } },
       { "weight": 1.0, "text": "ل", "hint": "*", "click": "sendText", "longPress": "showPopup", "params": { "text": "ل", "popup": "* **" } },
-      { "weight": 1.0, "text": "ا", "hint": "%", "click": "sendText", "longPress": "showPopup", "params": { "text": "ا", "popup": "%" } },
-      { "weight": 1.0, "text": "ت", "hint": "_", "click": "sendText", "longPress": "showPopup", "params": { "text": "ت", "popup": "_ __" } },
+      { "weight": 1.0, "text": "ا", "hint": "ء أ إ آ", "click": "sendText", "longPress": "showPopup", "params": { "text": "ا", "popup": "ء أ إ آ" } },
+      { "weight": 1.0, "text": "ت", "hint": "ـ", "click": "sendText", "longPress": "showPopup", "params": { "text": "ت", "popup": "ـ" } },
       { "weight": 1.0, "text": "ن", "hint": ":", "click": "sendText", "longPress": "showPopup", "params": { "text": "ن", "popup": ":" } },
       { "weight": 1.0, "text": "م", "hint": ";", "click": "sendText", "longPress": "showPopup", "params": { "text": "م", "popup": ";" } },
       { "weight": 1.0, "text": "ك", "hint": "!", "click": "sendText", "longPress": "showPopup", "params": { "text": "ك", "popup": "!" } }
@@ -60,13 +60,13 @@
   {
     "height": 55.0,
     "keys": [
-      { "weight": 1.0, "text": "ظ", "hint": "'", "click": "sendText", "longPress": "showPopup", "params": { "text": "ظ", "popup": "' ''" } },
+      { "weight": 1.0, "text": "ظ", "hint": "َ ِ ُ ً ٍ ٌ ّ ْ", "click": "sendText", "longPress": "showPopup", "params": { "text": "ظ", "popup": "َ ِ ُ ً ٍ ٌ ّ ْ" } },
       { "weight": 1.0, "text": "ط", "hint": "\"", "click": "sendText", "longPress": "showPopup", "params": { "text": "ط", "popup": "\" \"\"" } },
       { "weight": 1.0, "text": "ذ", "hint": "`", "click": "sendText", "longPress": "showPopup", "params": { "text": "ذ", "popup": "`" } },
       { "weight": 1.0, "text": "د", "hint": "<", "click": "sendText", "longPress": "showPopup", "params": { "text": "د", "popup": "< <= <>" } },
       { "weight": 1.0, "text": "ز", "hint": ">", "click": "sendText", "longPress": "showPopup", "params": { "text": "ز", "popup": "> >= </>" } },
       { "weight": 1.0, "text": "ر", "hint": "/", "click": "sendText", "longPress": "showPopup", "params": { "text": "ر", "popup": "/ // /**/" } },
-      { "weight": 1.0, "text": "و", "hint": "\\", "click": "sendText", "longPress": "showPopup", "params": { "text": "و", "popup": "\\" } },
+      { "weight": 1.0, "text": "و", "hint": "ؤ", "click": "sendText", "longPress": "showPopup", "params": { "text": "و", "popup": "ؤ" } },
       { "weight": 1.0, "text": "ة", "hint": "!", "click": "sendText", "longPress": "showPopup", "params": { "text": "ة", "popup": "!" } },
       { "weight": 1.0, "text": "ث", "hint": "!", "click": "sendText", "longPress": "showPopup", "params": { "text": "ث", "popup": "!" } },
       { "weight": 1.5, "text": "⌫", "click": "delete", "longPress": "loop", "horizontalSwipe": "delete", "params": {} }

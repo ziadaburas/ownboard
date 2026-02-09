@@ -2,6 +2,7 @@ package com.ownboard.app.ui
 
 import android.app.Activity
 import android.app.AlertDialog
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -19,35 +20,29 @@ class RowEditorActivity : Activity() {
     private lateinit var inputRowHeight: EditText
     private lateinit var txtRowTitle: TextView
     
-    // متغيرات الحالة
     private var langCode: String = ""
-    private var rowKey: String = ""
-    private var fullJsonObj: JSONObject? = null
+    private var rowIndex: Int = -1 // تغيير الاسم من rowKey إلى rowIndex
+    
+    private var fullJsonArray: JSONArray? = null // تغيير من Object إلى Array
     private var keysList = mutableListOf<JSONObject>()
-    private var hasUnsavedChanges = false // علم (Flag) لتتبع التعديلات
+    private var hasUnsavedChanges = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_row_editor)
 
-        // استلام البيانات
         langCode = intent.getStringExtra("LANG_CODE") ?: return finish()
-        rowKey = intent.getStringExtra("ROW_KEY") ?: return finish()
+        // نستقبل الرقم كنص ونحوله
+        val indexStr = intent.getStringExtra("ROW_KEY") ?: return finish()
+        rowIndex = indexStr.toIntOrNull() ?: return finish()
 
         layoutDatabase = LayoutDatabase(this)
         
         initViews()
         loadRowData()
         
-        // زر الحفظ
-        findViewById<Button>(R.id.btn_save_changes).setOnClickListener {
-            saveRowData()
-        }
-
-        // زر إضافة مفتاح جديد (مبدئي)
-        findViewById<Button>(R.id.btn_add_key).setOnClickListener {
-            addNewKey()
-        }
+        findViewById<Button>(R.id.btn_save_changes).setOnClickListener { saveRowData() }
+        findViewById<Button>(R.id.btn_add_key).setOnClickListener { addNewKey() }
     }
 
     private fun initViews() {
@@ -55,9 +50,8 @@ class RowEditorActivity : Activity() {
         inputRowHeight = findViewById(R.id.input_row_height)
         txtRowTitle = findViewById(R.id.txt_row_title)
         
-        txtRowTitle.text = "تعديل الصف: $rowKey"
+        txtRowTitle.text = "تعديل الصف رقم: ${rowIndex + 1}"
         
-        // مراقبة تغيير الارتفاع
         inputRowHeight.addTextChangedListener(object : android.text.TextWatcher {
             override fun afterTextChanged(s: android.text.Editable?) { hasUnsavedChanges = true }
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
@@ -70,14 +64,13 @@ class RowEditorActivity : Activity() {
         if (jsonString.isEmpty()) return
 
         try {
-            fullJsonObj = JSONObject(jsonString)
-            val rowObj = fullJsonObj!!.getJSONObject(rowKey)
+            fullJsonArray = JSONArray(jsonString)
+            // الوصول للصف عن طريق الـ Index
+            val rowObj = fullJsonArray!!.getJSONObject(rowIndex)
             
-            // تعيين الارتفاع
             val height = rowObj.optDouble("height", 50.0)
             inputRowHeight.setText(height.toString())
 
-            // تعيين الأزرار
             val keysArray = rowObj.getJSONArray("keys")
             keysList.clear()
             for (i in 0 until keysArray.length()) {
@@ -85,10 +78,10 @@ class RowEditorActivity : Activity() {
             }
             
             renderKeysList()
-            hasUnsavedChanges = false // إعادة تعيين العلم لأننا حملنا البيانات للتو
+            hasUnsavedChanges = false
 
         } catch (e: Exception) {
-            Toast.makeText(this, "خطأ في تحميل البيانات: ${e.message}", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "خطأ: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -99,7 +92,6 @@ class RowEditorActivity : Activity() {
         keysList.forEachIndexed { index, keyObj ->
             val itemView = inflater.inflate(R.layout.item_key_card, keysContainer, false)
             
-            // ربط العناصر
             val txtLabel = itemView.findViewById<TextView>(R.id.txt_key_label)
             val txtType = itemView.findViewById<TextView>(R.id.txt_key_type)
             val txtWeight = itemView.findViewById<TextView>(R.id.txt_key_weight)
@@ -107,50 +99,38 @@ class RowEditorActivity : Activity() {
             val btnEdit = itemView.findViewById<View>(R.id.btn_edit_key)
             val btnMove = itemView.findViewById<View>(R.id.btn_move_key)
 
-            // تعبئة البيانات
             val textVal = keyObj.optString("text", "")
-            val label = if (textVal.isNotEmpty()) textVal else keyObj.optString("type", "Key")
+            val label = if (textVal.isNotEmpty()) textVal else "زر"
             
             txtLabel.text = label
-            txtType.text = "All :النوع" // يمكن جعله ديناميكي لاحقاً
-            txtWeight.text = "${keyObj.optDouble("weight", 1.0)} :الوزن"
+            txtType.text = "" 
+            txtWeight.text = "الوزن: ${keyObj.optDouble("weight", 1.0)}"
 
-            // === برمجة الأزرار ===
-            
-            // 1. الحذف
-            btnDelete.setOnClickListener {
-                confirmDeleteKey(index)
-            }
+            btnDelete.setOnClickListener { confirmDeleteKey(index) }
 
-            // 2. التعديل (سنفتحه في خطوة قادمة، الآن مجرد توست)
-            // 2. التعديل (فتح شاشة محرر الزر)
             btnEdit.setOnClickListener {
-                val intent = android.content.Intent(this, KeyEditorActivity::class.java)
+                val intent = Intent(this, KeyEditorActivity::class.java)
                 intent.putExtra("LANG_CODE", langCode)
-                intent.putExtra("ROW_KEY", rowKey)
-                intent.putExtra("KEY_INDEX", index) // نمرر رقم الزر في المصفوفة
+                intent.putExtra("ROW_KEY", rowIndex.toString()) // نمرر الـ Index
+                intent.putExtra("KEY_INDEX", index)
                 startActivity(intent)
             }
 
-            // 3. الترتيب (قائمة منبثقة للتحريك)
-            btnMove.setOnClickListener { view ->
-                showMoveMenu(view, index)
-            }
+            btnMove.setOnClickListener { view -> showMoveMenu(view, index) }
 
             keysContainer.addView(itemView)
         }
     }
 
-    // منطق الترتيب (تحريك للأعلى/الأسفل)
     private fun showMoveMenu(view: View, index: Int) {
         val popup = PopupMenu(this, view)
-        popup.menu.add(0, 1, 0, "تحريك للأعلى (يمين)")
-        popup.menu.add(0, 2, 0, "تحريك للأسفل (يسار)")
+        popup.menu.add(0, 1, 0, "تحريك لليمين (سابق)")
+        popup.menu.add(0, 2, 0, "تحريك لليسار (تالي)")
         
         popup.setOnMenuItemClickListener { item ->
             when (item.itemId) {
-                1 -> moveKey(index, -1) // -1 يعني للأعلى في القائمة (يمين في الكيبورد العربي)
-                2 -> moveKey(index, 1)  // +1 يعني للأسفل
+                1 -> moveKey(index, -1)
+                2 -> moveKey(index, 1)
             }
             true
         }
@@ -161,7 +141,7 @@ class RowEditorActivity : Activity() {
         val newIndex = currentIndex + direction
         if (newIndex in 0 until keysList.size) {
             Collections.swap(keysList, currentIndex, newIndex)
-            renderKeysList() // إعادة رسم القائمة
+            renderKeysList()
             hasUnsavedChanges = true
         }
     }
@@ -169,27 +149,26 @@ class RowEditorActivity : Activity() {
     private fun confirmDeleteKey(index: Int) {
         AlertDialog.Builder(this)
             .setTitle("حذف الزر")
-            .setMessage("هل أنت متأكد من حذف هذا الزر؟")
-            .setPositiveButton("حذف") { _, _ ->
+            .setMessage("تأكيد الحذف؟")
+            .setPositiveButton("نعم") { _, _ ->
                 keysList.removeAt(index)
                 renderKeysList()
                 hasUnsavedChanges = true
             }
-            .setNegativeButton("إلغاء", null)
+            .setNegativeButton("لا", null)
             .show()
     }
 
     private fun addNewKey() {
-        // إضافة زر افتراضي جديد
         val newKey = JSONObject()
         newKey.put("text", "جديد")
         newKey.put("weight", 1.0)
-        newKey.put("type", "All")
+        newKey.put("click", "sendText")
+        newKey.put("params", JSONObject().put("text", "جديد")) // هيكلة Params الجديدة
         
         keysList.add(newKey)
         renderKeysList()
         hasUnsavedChanges = true
-        // تمرير لأسفل القائمة لرؤية الزر الجديد
         keysContainer.post { 
             (keysContainer.parent as ScrollView).fullScroll(View.FOCUS_DOWN)
         }
@@ -197,42 +176,35 @@ class RowEditorActivity : Activity() {
 
     private fun saveRowData() {
         try {
-            // تحديث كائن الصف
-            val rowObj = fullJsonObj!!.getJSONObject(rowKey)
+            val rowObj = fullJsonArray!!.getJSONObject(rowIndex)
             
-            // 1. حفظ الارتفاع
             val newHeight = inputRowHeight.text.toString().toDoubleOrNull() ?: 50.0
             rowObj.put("height", newHeight)
 
-            // 2. حفظ مصفوفة الأزرار الجديدة
             val newKeysArray = JSONArray()
             keysList.forEach { newKeysArray.put(it) }
             rowObj.put("keys", newKeysArray)
 
-            // 3. تحديث الكائن الرئيسي
-            fullJsonObj!!.put(rowKey, rowObj)
+            // تحديث المصفوفة الرئيسية في موقعها
+            fullJsonArray!!.put(rowIndex, rowObj)
 
-            // 4. الحفظ في قاعدة البيانات
-            layoutDatabase.updateLayout(langCode, fullJsonObj!!.toString())
+            layoutDatabase.updateLayout(langCode, fullJsonArray!!.toString())
             
             hasUnsavedChanges = false
-            Toast.makeText(this, "تم حفظ التعديلات بنجاح!", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "تم الحفظ!", Toast.LENGTH_SHORT).show()
             
         } catch (e: Exception) {
             Toast.makeText(this, "فشل الحفظ: ${e.message}", Toast.LENGTH_LONG).show()
         }
     }
 
-    // === التعامل مع زر الرجوع (حماية التغييرات) ===
     override fun onBackPressed() {
         if (hasUnsavedChanges) {
             AlertDialog.Builder(this)
                 .setTitle("تغييرات غير محفوظة")
-                .setMessage("لديك تعديلات لم تقم بحفظها. هل تريد الخروج وفقدان التعديلات؟")
-                .setPositiveButton("خروج") { _, _ ->
-                    super.onBackPressed() // الخروج الفعلي
-                }
-                .setNegativeButton("بقاء", null) // إلغاء الخروج
+                .setMessage("هل تريد الخروج؟")
+                .setPositiveButton("خروج") { _, _ -> super.onBackPressed() }
+                .setNegativeButton("إلغاء", null)
                 .setNeutralButton("حفظ وخروج") { _, _ ->
                     saveRowData()
                     super.onBackPressed()
@@ -242,9 +214,9 @@ class RowEditorActivity : Activity() {
             super.onBackPressed()
         }
     }
+    
     override fun onResume() {
         super.onResume()
-        // إعادة تحميل البيانات عند العودة من شاشة تعديل الزر
-        loadRowData() 
+        loadRowData()
     }
 }

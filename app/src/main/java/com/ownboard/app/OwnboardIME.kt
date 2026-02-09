@@ -17,6 +17,8 @@ import java.util.Collections
 import android.view.Gravity
 import com.ownboard.app.db.*
 import android.view.HapticFeedbackConstants
+import org.json.JSONArray
+
 
 class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedListener {
 
@@ -205,6 +207,8 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
         }
     }
 
+
+
     private fun buildKeyboard(jsonString: String) {
         try {
             keyboardContainer.removeAllViews()
@@ -214,17 +218,12 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
             containerParams.height = totalHeightPx
             keyboardContainer.layoutParams = containerParams
 
-            val jsonObject = JSONObject(jsonString)
-            
-            val keysIterator = jsonObject.keys()
-            val keysList = mutableListOf<String>()
-            while (keysIterator.hasNext()) {
-                keysList.add(keysIterator.next())
-            }
-            Collections.sort(keysList)
+            // التعديل الأساسي هنا: استخدام JSONArray
+            val rowsArray = JSONArray(jsonString)
 
-            for (rowKey in keysList) {
-                val rowObj = jsonObject.getJSONObject(rowKey)
+            // التكرار عبر المصفوفة مباشرة
+            for (i in 0 until rowsArray.length()) {
+                val rowObj = rowsArray.getJSONObject(i)
                 
                 val rowWeight = rowObj.optDouble("height", 1.0).toFloat()
                 val keysArray = rowObj.getJSONArray("keys")
@@ -240,8 +239,8 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
                     )
                 }
 
-                for (i in 0 until keysArray.length()) {
-                    val keyData = keysArray.getJSONObject(i)
+                for (j in 0 until keysArray.length()) {
+                    val keyData = keysArray.getJSONObject(j)
                     
                     val keyView = All(this).apply {
                         text = keyData.optString("text", "")
@@ -273,9 +272,11 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
 
                 keyboardContainer.addView(rowLayout)
             }
-
+            
+            // ... (بقية كود الشريط السفلي كما هو)
             if (bottomPaddingDp > 0) {
-                val navBar = LinearLayout(this).apply {
+                 // ... كود الـ Navigation Bar الموجود سابقاً
+                 val navBar = LinearLayout(this).apply {
                     orientation = LinearLayout.HORIZONTAL
                     layoutParams = LinearLayout.LayoutParams(
                         ViewGroup.LayoutParams.MATCH_PARENT,
@@ -284,8 +285,8 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
                     gravity = Gravity.TOP
                     setBackgroundColor(Color.parseColor("#1A1A1A"))
                 }
-
-                fun createNavBarBtn(textStr: String, onClick: () -> Unit): TextView {
+                // ... (نفس كود الأزرار) ...
+                 fun createNavBarBtn(textStr: String, onClick: () -> Unit): TextView {
                     return TextView(this).apply {
                         text = textStr
                         textSize = bottomPaddingDp
@@ -324,6 +325,7 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
 
                 keyboardContainer.addView(navBar)
             }
+
         } catch (e: Exception) {
             Log.e("OwnboardIME", "Error building keyboard: ${e.message}")
             e.printStackTrace()

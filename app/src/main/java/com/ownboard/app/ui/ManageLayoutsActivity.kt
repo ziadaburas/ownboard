@@ -8,7 +8,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import android.view.ViewGroup
-import com.ownboard.app.R // هام جداً: استيراد R من البكج الرئيسي
+import com.ownboard.app.R
 import com.ownboard.app.db.LayoutDatabase
 
 class ManageLayoutsActivity : Activity() {
@@ -21,30 +21,27 @@ class ManageLayoutsActivity : Activity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_manage_layouts)
 
-        // تهيئة قاعدة البيانات والعناصر
         layoutDatabase = LayoutDatabase(this)
         layoutsContainer = findViewById(R.id.layouts_container)
         resetLayoutsButton = findViewById(R.id.reset_layouts_button)
 
-        // تحميل الأزرار عند الفتح
         loadLayoutButtons()
 
-        // زر إعادة التعيين
         resetLayoutsButton.setOnClickListener {
             layoutDatabase.resetToDefaultLayouts()
             loadLayoutButtons()
-            Toast.makeText(this, "تمت إعادة تعيين التخطيطات الافتراضية", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "تمت إعادة التعيين", Toast.LENGTH_SHORT).show()
         }
     }
 
     private fun loadLayoutButtons() {
-        layoutsContainer.removeAllViews() // تنظيف القائمة قبل الرسم
+        layoutsContainer.removeAllViews()
 
         val allLayouts = layoutDatabase.getAllLayouts()
 
         if (allLayouts.isEmpty()) {
             val textView = TextView(this).apply {
-                text = "لا توجد تخطيطات محفوظة."
+                text = "لا توجد بيانات."
                 gravity = Gravity.CENTER
                 textSize = 18f
                 setPadding(0, 32, 0, 32)
@@ -53,24 +50,25 @@ class ManageLayoutsActivity : Activity() {
             return
         }
 
-        // إنشاء زر لكل لغة موجودة في قاعدة البيانات
-        allLayouts.forEach { (lang, _) ->
+        // استخدام حلقة for صريحة لحل مشكلة الغموض في Kotlin
+        for (i in allLayouts.indices) {
+            val lang = allLayouts[i].first
+            
             val button = Button(this).apply {
                 text = "${getLocalizedLayoutName(lang)} ($lang)"
                 textSize = 18f
                 
-                // إعداد الهوامش (Margins)
                 val params = LinearLayout.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT,
                     ViewGroup.LayoutParams.WRAP_CONTENT
                 )
-                params.setMargins(0, 0, 0, 16) // مسافة سفلية بين الأزرار
+                params.setMargins(0, 0, 0, 16)
                 layoutParams = params
 
                 setOnClickListener {
-                    // الانتقال لشاشة المحرر مع تمرير كود اللغة
                     val intent = android.content.Intent(this@ManageLayoutsActivity, LayoutEditorActivity::class.java)
-                    intent.putExtra("LANG_CODE", lang) // نمرر مثلاً "ar" أو "en"
+                    // تحديد النوع String صراحة لحل مشكلة putExtra
+                    intent.putExtra("LANG_CODE", lang as String)
                     startActivity(intent)
                 }
             }
@@ -82,13 +80,13 @@ class ManageLayoutsActivity : Activity() {
         return when (lang) {
             "ar" -> "العربية"
             "en" -> "English"
+            "symbols" -> "الرموز"
             else -> lang.uppercase()
         }
     }
     
     override fun onDestroy() {
         super.onDestroy()
-        // إغلاق قاعدة البيانات عند الخروج لتجنب تسريب الذاكرة
         layoutDatabase.close()
     }
 }

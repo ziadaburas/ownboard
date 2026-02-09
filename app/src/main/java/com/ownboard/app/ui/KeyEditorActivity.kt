@@ -6,11 +6,15 @@ import android.widget.*
 import com.ownboard.app.All
 import com.ownboard.app.R
 import com.ownboard.app.db.LayoutDatabase
+import org.json.JSONArray
 import org.json.JSONObject
 
 class KeyEditorActivity : Activity() {
 
     private lateinit var layoutDatabase: LayoutDatabase
+    
+    // ... (تعريف عناصر الواجهة كما هي في الكود السابق) ...
+    // ... (نفس المتغيرات السابقة) ...
     
     // UI Elements
     private lateinit var inputText: EditText
@@ -27,7 +31,6 @@ class KeyEditorActivity : Activity() {
     
     private lateinit var inputTextLong: EditText
     private lateinit var inputCodeLong: EditText
-    // الحقل الجديد
     private lateinit var inputPopupChars: EditText
     
     private lateinit var inputTextHorizontal: EditText
@@ -37,9 +40,10 @@ class KeyEditorActivity : Activity() {
     private lateinit var inputCodeVertical: EditText 
 
     private var langCode = ""
-    private var rowKey = ""
+    private var rowIndex = -1
     private var keyIndex = -1
-    private var fullJsonObj: JSONObject? = null
+    
+    private var fullJsonArray: JSONArray? = null // تعديل: Array
     private var keyObj: JSONObject? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -47,7 +51,10 @@ class KeyEditorActivity : Activity() {
         setContentView(R.layout.activity_key_editor)
 
         langCode = intent.getStringExtra("LANG_CODE") ?: return finish()
-        rowKey = intent.getStringExtra("ROW_KEY") ?: return finish()
+        // استقبال الرقم كنص
+        val rowKeyStr = intent.getStringExtra("ROW_KEY") ?: return finish()
+        rowIndex = rowKeyStr.toIntOrNull() ?: return finish()
+        
         keyIndex = intent.getIntExtra("KEY_INDEX", -1)
         if (keyIndex == -1) return finish()
 
@@ -61,7 +68,8 @@ class KeyEditorActivity : Activity() {
             saveKeyData()
         }
     }
-
+    
+    // ... (دوال initViews و setupSpinners كما هي في الكود السابق الذي زودتك به في الردود السابقة، تأكد من نسخها) ...
     private fun initViews() {
         inputText = findViewById(R.id.input_text)
         inputHint = findViewById(R.id.input_hint)
@@ -74,7 +82,7 @@ class KeyEditorActivity : Activity() {
         spinnerLongPress = findViewById(R.id.spinner_long_press)
         inputTextLong = findViewById(R.id.input_text_long)
         inputCodeLong = findViewById(R.id.input_code_long)
-        inputPopupChars = findViewById(R.id.input_popup_chars) // تعريفه
+        inputPopupChars = findViewById(R.id.input_popup_chars) 
         
         spinnerHorizontal = findViewById(R.id.spinner_horizontal)
         inputTextHorizontal = findViewById(R.id.input_text_horizontal)
@@ -100,11 +108,12 @@ class KeyEditorActivity : Activity() {
     private fun loadKeyData() {
         val jsonString = layoutDatabase.getLayoutByLang(langCode)
         try {
-            fullJsonObj = JSONObject(jsonString)
-            val rowObj = fullJsonObj!!.getJSONObject(rowKey)
+            fullJsonArray = JSONArray(jsonString) // تحميل كمصفوفة
+            val rowObj = fullJsonArray!!.getJSONObject(rowIndex) // جلب الصف بالرقم
             val keysArray = rowObj.getJSONArray("keys")
             keyObj = keysArray.getJSONObject(keyIndex)
 
+            // ... (بقية منطق التحميل كما هو تماماً) ...
             inputText.setText(keyObj!!.optString("text", ""))
             inputHint.setText(keyObj!!.optString("hint", ""))
             inputWeight.setText(keyObj!!.optDouble("weight", 1.0).toString())
@@ -124,7 +133,6 @@ class KeyEditorActivity : Activity() {
             val lpCode = params.optInt("lpCode", 0)
             inputCodeLong.setText(if (lpCode != 0) lpCode.toString() else "")
             
-            // تحميل قيمة Popup
             inputPopupChars.setText(params.optString("popup", ""))
             
             inputTextHorizontal.setText(params.optString("hText", ""))
@@ -136,7 +144,7 @@ class KeyEditorActivity : Activity() {
             inputCodeVertical.setText(if (vCode != 0) vCode.toString() else "")
 
         } catch (e: Exception) {
-            Toast.makeText(this, "خطأ في تحميل البيانات: ${e.message}", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "خطأ: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -149,6 +157,7 @@ class KeyEditorActivity : Activity() {
 
     private fun saveKeyData() {
         try {
+            // ... (نفس منطق جمع البيانات وبناء Params) ...
             keyObj!!.put("text", inputText.text.toString())
             keyObj!!.put("hint", inputHint.text.toString())
             keyObj!!.put("weight", inputWeight.text.toString().toDoubleOrNull() ?: 1.0)
@@ -159,38 +168,30 @@ class KeyEditorActivity : Activity() {
             keyObj!!.put("verticalSwipe", spinnerVertical.selectedItem.toString())
 
             val params = JSONObject()
-
-            fun addToParams(key: String, value: String) {
-                if (value.isNotEmpty()) params.put(key, value)
-            }
-            fun addToParams(key: String, value: Int) {
-                if (value != 0) params.put(key, value)
-            }
+            fun addToParams(key: String, value: String) { if (value.isNotEmpty()) params.put(key, value) }
+            fun addToParams(key: String, value: Int) { if (value != 0) params.put(key, value) }
 
             addToParams("text", inputTextClick.text.toString())
             addToParams("code", inputCodeClick.text.toString().toIntOrNull() ?: 0)
-            
             addToParams("lpText", inputTextLong.text.toString())
             addToParams("lpCode", inputCodeLong.text.toString().toIntOrNull() ?: 0)
-            
-            // حفظ Popup
             addToParams("popup", inputPopupChars.text.toString())
-            
             addToParams("hText", inputTextHorizontal.text.toString())
             addToParams("hCode", inputCodeHorizontal.text.toString().toIntOrNull() ?: 0)
-
             addToParams("vText", inputTextVertical.text.toString())
             addToParams("vCode", inputCodeVertical.text.toString().toIntOrNull() ?: 0)
 
             keyObj!!.put("params", params)
 
-            val rowObj = fullJsonObj!!.getJSONObject(rowKey)
+            // الحفظ في المصفوفة
+            val rowObj = fullJsonArray!!.getJSONObject(rowIndex)
             val keysArray = rowObj.getJSONArray("keys")
             keysArray.put(keyIndex, keyObj)
             
-            layoutDatabase.updateLayout(langCode, fullJsonObj!!.toString())
+            // حفظ المصفوفة كاملة
+            layoutDatabase.updateLayout(langCode, fullJsonArray!!.toString())
             
-            Toast.makeText(this, "تم تحديث الزر بنجاح", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "تم التحديث", Toast.LENGTH_SHORT).show()
             finish()
 
         } catch (e: Exception) {

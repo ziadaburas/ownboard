@@ -9,7 +9,7 @@
         android:id="@+id/editor_title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="تعديل تخطيط: العربية (ar)"
+        android:text="تعديل التخطيط"
         android:textSize="20sp"
         android:textStyle="bold"
         android:gravity="center"
@@ -40,11 +40,21 @@
         android:elevation="8dp">
 
         <Button
+            android:id="@+id/btn_add_row"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="+ صف"
+            android:backgroundTint="#4CAF50"
+            android:textColor="#FFFFFF"
+            android:layout_marginEnd="4dp"/>
+
+        <Button
             android:id="@+id/btn_export_json"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="تصدير JSON"
+            android:text="تصدير"
             android:textSize="12sp"
             android:layout_marginEnd="4dp"/>
 
@@ -53,7 +63,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="استيراد JSON"
+            android:text="استيراد"
             android:textSize="12sp"
             android:layout_marginEnd="4dp"/>
 
@@ -62,7 +72,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="إعادة الافتراضي"
+            android:text="إعادة"
             android:textSize="12sp"
             android:backgroundTint="#FF5722"
             android:textColor="#FFFFFF"/>
