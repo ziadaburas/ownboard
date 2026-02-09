@@ -136,7 +136,7 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
         emojiBoard.visibility = View.GONE
         
         rootView.addView(emojiBoard, emojiParams)
-        
+         
         return rootView
     }
 
@@ -149,7 +149,6 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
             val params = keyboardContainer.layoutParams
             params.height = newHeight
             keyboardContainer.layoutParams = params
-
             if (clipboardView.visibility == View.VISIBLE) {
                  val clipParams = clipboardView.layoutParams
                  clipParams.height = newHeight
@@ -168,6 +167,7 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
             params.height = dpToPx(getCurrentKeyboardHeight())
             emojiBoard.layoutParams = params
         }
+        
     }
 
     override fun onStartInputView(info: EditorInfo?, restarting: Boolean) {
@@ -254,8 +254,7 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
             }
         }
     }
-
-
+    
 
     private fun buildKeyboard(jsonString: String) {
         try {
@@ -380,10 +379,7 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
         }
     }
 
-    // ============================================================
-    // دوال التبديل المحدثة
-    // ============================================================
-
+    
     fun switchLang() {
         // إذا كنا في وضع الرموز، قم بالخروج منه أولاً (اختياري، أو يمكننا التبديل مباشرة)
         // لكن المنطق هنا: تبديل اللغة يؤثر على currentLang

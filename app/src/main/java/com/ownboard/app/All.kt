@@ -132,11 +132,13 @@ constructor(
                 onClickFn = {
                     OwnboardIME.ime.toggleEmoji()
                 }
+                backgroundImg = R.drawable.ic_emoji
             }
             "openClipboard" -> {
                 onClickFn = {
                     OwnboardIME.ime.toggleClipboard()
                 }
+                backgroundImg = R.drawable.ic_clipboard
             }
             else -> { onClickFn={} }
         }
@@ -145,6 +147,7 @@ constructor(
     open var longPress = ""
     set(value) {
         field = value
+        if(click == "sendSpecial") return
         when(value){
             "sendText"->{
                 onLongPressFn= {
@@ -345,8 +348,8 @@ constructor(
     init {
        val paramsLayout = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1f)
         layoutParams = paramsLayout
-        if(!isConstKey){
-            Key.capslock.addListener { 
+        Key.capslock.addListener { 
+            if(!isConstKey){
                 var value = it ?: 0
                 if (value != 0) {
                     text = text.uppercase()

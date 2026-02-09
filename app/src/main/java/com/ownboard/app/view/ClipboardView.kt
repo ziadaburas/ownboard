@@ -53,7 +53,7 @@ class ClipboardView @JvmOverloads constructor(
 
     init {
         visibility = View.GONE
-        setBackgroundColor(Color.parseColor("#121212"))
+        setBackgroundColor(Color.parseColor("#222222"))
 
         // 1. إنشاء التخطيط الرئيسي (عمودي)
         mainLayout = LinearLayout(context).apply {

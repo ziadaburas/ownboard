@@ -2,15 +2,15 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/emoji_bg_main"
+    android:background="#121212"
     android:orientation="vertical">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="40dp"
-        android:background="@color/emoji_bar_bg"
         android:gravity="center_vertical"
         android:orientation="horizontal"
+        android:background="#121212"
         android:paddingHorizontal="15dp">
 
         
@@ -29,15 +29,16 @@
             android:layout_height="0dp"
             android:layout_weight="1" />
 
-       <ImageButton
+       <TextView
             android:id="@+id/btn_backspace"
             android:layout_width="40dp"
             android:layout_height="match_parent"
-            android:background="@android:color/transparent"
-            android:src="@android:drawable/ic_input_delete"
-            android:scaleType="centerInside"
-            android:tint="@color/emoji_text_white"
-            android:contentDescription="Delete" />
+            android:gravity="center"
+            android:text="⌫"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:textColor="@color/emoji_text_white"
+            android:background="@android:color/transparent" />
 
     </LinearLayout>
 

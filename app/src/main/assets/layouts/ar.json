@@ -76,8 +76,8 @@
     "height": 60.0,
     "keys": [
       { "weight": 1.5, "text": "123", "click": "switchSymbols", "params": {} },
-      { "weight": 1.0, "text": "😁", "click": "openEmoji", "params": {} },
-      { "weight": 1.0, "text": "،", "click": "sendText", "params": { "text": "،" } },
+      { "weight": 1.0, "text": "e", "click": "openEmoji", "params": {} },
+      { "weight": 1.0, "text": ",", "click": "sendText", "params": { "text": "،", "popup": "،" } },
       { "weight": 3.0, "text": "العربية", "hint": "English", "click": "sendText", "horizontalSwipe": "switchLang", "params": { "text": " " } },
       { "weight": 1.0, "text": ".", "click": "sendText", "params": { "text": "." } },
       { "weight": 1.0, "text": "📋", "click": "openClipboard", "params": {} },
