@@ -29,22 +29,22 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
     lateinit var popupContainer: LinearLayout 
     lateinit var clipboardView: com.ownboard.app.view.ClipboardView
     
-    // قواعد البيانات
     lateinit var dbHelper: LayoutDatabase
     lateinit var appLangDb: AppLanguageDbHelper 
 
     private var clipboardManager: ClipboardManager? = null
 
+    // تتبع اللغة الحالية (ar/en)
     var currentLang = "ar"
+    // تتبع حالة الرموز (محايدة)
+    var isSymbolsMode = false
+    
     private var currentAppPackage: String = ""
 
     val backTexts = listOf("<>","</>","/**/","\"\"","''","()","{}","[]")
     
     private lateinit var mapper: UsbGamepadMapper
 
-    // ==========================================
-    // متغيرات التحكم بارتفاع الكيبورد
-    // ==========================================
     var keyboardHeightPortraitDp = 340f  
     var keyboardHeightLandscapeDp = 300f 
     var bottomPaddingDp = 15f
@@ -81,7 +81,6 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
         }
     }
 
-    // دالة مساعدة لتحديد الارتفاع الحالي بناءً على الاتجاه
     private fun getCurrentKeyboardHeight(): Float {
         val configuration = resources.configuration
         return if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
@@ -144,7 +143,12 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
                  clipboardView.layoutParams = clipParams
             }
             
-            loadKeyboardFromDB(currentLang)
+            // إعادة التحميل (سواء كانت رموز أو لغة عادية)
+            if (isSymbolsMode) {
+                loadKeyboardFromDB("symbols")
+            } else {
+                loadKeyboardFromDB(currentLang)
+            }
         }
     }
 
@@ -157,7 +161,9 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
         } else {
             currentAppPackage = ""
         }
-
+        
+        // عند بدء الإدخال، نلغي وضع الرموز ونعود للغة الافتراضية
+        isSymbolsMode = false
         loadKeyboardFromDB(currentLang)
     }
 
@@ -189,13 +195,16 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
             buildKeyboard(jsonLayout)
         } else {
             Log.e("OwnboardIME", "Layout not found for lang: $lang")
-            if(lang != "ar") loadKeyboardFromDB("ar")
+            // إذا لم يتم العثور على الرموز، نعود للعربية
+            if(lang == "symbols") {
+                 isSymbolsMode = false
+                 loadKeyboardFromDB("ar")
+            } else if(lang != "ar") {
+                 loadKeyboardFromDB("ar")
+            }
         }
     }
 
-    // ============================================================
-    // الدالة المحدثة لبناء الكيبورد وفق الهيكلة الجديدة
-    // ============================================================
     private fun buildKeyboard(jsonString: String) {
         try {
             keyboardContainer.removeAllViews()
@@ -235,22 +244,18 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
                     val keyData = keysArray.getJSONObject(i)
                     
                     val keyView = All(this).apply {
-                        // 1. البيانات الأساسية
                         text = keyData.optString("text", "")
                         hint = keyData.optString("hint", "")
                         val weightVal = keyData.optDouble("weight", 1.0).toFloat()
                         
                         layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, weightVal)
 
-                        // 2. تعيين الوظائف (بما في ذلك السحب الجديد)
                         click = keyData.optString("click", "")
                         longPress = keyData.optString("longPress", "")
                         
-                        // استبدال leftScroll/rightScroll بـ horizontalSwipe/verticalSwipe
                         horizontalSwipe = keyData.optString("horizontalSwipe", "")
                         verticalSwipe = keyData.optString("verticalSwipe", "")
 
-                        // 3. بناء خريطة المعلمات (Params Map)
                         val paramsObj = keyData.optJSONObject("params")
                         val paramsMap = mutableMapOf<String, Any>()
                         if (paramsObj != null) {
@@ -260,7 +265,6 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
                                 paramsMap[key] = paramsObj.get(key)
                             }
                         }
-                        // إسناد الخريطة إلى الزر (All.kt سيقوم بالباقي)
                         params = paramsMap
                     }
 
@@ -270,7 +274,6 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
                 keyboardContainer.addView(rowLayout)
             }
 
-            // الشريط السفلي (Navigation Bar)
             if (bottomPaddingDp > 0) {
                 val navBar = LinearLayout(this).apply {
                     orientation = LinearLayout.HORIZONTAL
@@ -282,7 +285,6 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
                     setBackgroundColor(Color.parseColor("#1A1A1A"))
                 }
 
-                // دالة مساعدة داخلية لإنشاء الأزرار
                 fun createNavBarBtn(textStr: String, onClick: () -> Unit): TextView {
                     return TextView(this).apply {
                         text = textStr
@@ -302,19 +304,16 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
                     }
                 }
 
-                // زر تغيير الكيبورد
                 val switchImeBtn = createNavBarBtn("\u2328") {
                     val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as android.view.inputmethod.InputMethodManager
                     imm.showInputMethodPicker()
                 }
 
-                // مسافة فارغة
                 val centerSpace = View(this).apply {
                     layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1f)
                     setOnTouchListener { _, _ -> true }
                 }
 
-                // زر الإغلاق
                 val hideKeyboardBtn = createNavBarBtn("\u25BC") {
                     requestHideSelf(0)
                 }
@@ -331,25 +330,43 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
         }
     }
 
+    // ============================================================
+    // دوال التبديل المحدثة
+    // ============================================================
+
     fun switchLang() {
+        // إذا كنا في وضع الرموز، قم بالخروج منه أولاً (اختياري، أو يمكننا التبديل مباشرة)
+        // لكن المنطق هنا: تبديل اللغة يؤثر على currentLang
         if (currentLang == "ar") {
             currentLang = "en"
-            loadKeyboardFromDB("en")
         } else {
             currentLang = "ar"
-            loadKeyboardFromDB("ar")
         }
         
+        // حفظ اللغة للتطبيق
         if (currentAppPackage.isNotEmpty()) {
             appLangDb.setAppLanguage(currentAppPackage, currentLang)
         }
         
+        // عند تبديل اللغة، نخرج من وضع الرموز ونعرض اللغة الجديدة
+        isSymbolsMode = false
+        loadKeyboardFromDB(currentLang)
+
         Key.isSymbols.value = false
         Key.capslock.value = 0 
     }
 
-    fun switchSymbols(isSymbols: Boolean) {
-        // يمكنك تنفيذ منطق التبديل هنا إذا لزم الأمر
+    // الدالة المسؤولة عن تبديل الرموز (Toggle)
+    fun switchSymbols(ignored: Boolean) {
+        if (!isSymbolsMode) {
+            // تفعيل وضع الرموز (دون تغيير currentLang)
+            isSymbolsMode = true
+            loadKeyboardFromDB("symbols")
+        } else {
+            // العودة إلى وضع الحروف (باستخدام اللغة الحالية المحفوظة)
+            isSymbolsMode = false
+            loadKeyboardFromDB(currentLang)
+        }
     }
 
     fun sendKeyPress(text: String) {

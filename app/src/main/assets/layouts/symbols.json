@@ -1,0 +1,67 @@
+[
+  {
+    "height": 45.0,
+    "keys": [
+      { "weight": 1.0, "text": "←", "click": "sendCode", "longPress": "loop", "params": { "code": 21 } },
+      { "weight": 1.0, "text": "↑", "hint": "Home", "click": "sendCode", "longPress": "sendCode", "verticalSwipe": "sendCode", "params": { "code": 19, "lpCode": 122, "vCode": 122 } },
+      { "weight": 1.0, "text": "⇥", "click": "sendCode", "params": { "code": 61 } },
+      { "weight": 1.0, "text": "Ctrl", "click": "sendSpecial", "params": { "code": 113 } }, 
+      { "weight": 1.0, "text": "Alt", "click": "sendSpecial", "params": { "code": 57 } },
+      { "weight": 1.0, "text": "Shift", "click": "sendSpecial", "params": { "code": 59 } },
+      { "weight": 1.0, "text": "↓", "hint": "End", "click": "sendCode", "longPress": "sendCode", "verticalSwipe": "sendCode", "params": { "code": 20, "lpCode": 123, "vCode": 123 } },
+      { "weight": 1.0, "text": "→", "click": "sendCode", "longPress": "loop", "params": { "code": 22 } }
+    ]
+  },
+  {
+    "height": 55.0,
+    "keys": [
+      { "weight": 1.0, "text": "+", "hint": "+++ =", "click": "sendText", "longPress": "showPopup", "params": { "text": "+", "popup": "+++ =" } },
+      { "weight": 1.0, "text": "1", "click": "sendText", "params": { "text": "1" } },
+      { "weight": 1.0, "text": "2", "click": "sendText", "params": { "text": "2" } },
+      { "weight": 1.0, "text": "3", "click": "sendText", "params": { "text": "3" } },
+      { "weight": 1.0, "text": "/", "hint": "()", "click": "sendText", "longPress": "showPopup", "params": { "text": "/", "popup": "()" } }
+    ]
+  },
+  {
+    "height": 55.0,
+    "keys": [
+      { "weight": 1.0, "text": "-", "hint": "_", "click": "sendText", "longPress": "showPopup", "params": { "text": "-", "popup": "_" } },
+      { "weight": 1.0, "text": "4", "click": "sendText", "params": { "text": "4" } },
+      { "weight": 1.0, "text": "5", "click": "sendText", "params": { "text": "5" } },
+      { "weight": 1.0, "text": "6", "click": "sendText", "params": { "text": "6" } },
+      { "weight": 1.0, "text": "\\", "hint": "{}", "click": "sendText", "longPress": "showPopup", "params": { "text": "\\", "popup": "{}" } }
+    ]
+  },
+  {
+    "height": 55.0,
+    "keys": [
+      { "weight": 1.0, "text": "!", "hint": "@", "click": "sendText", "longPress": "showPopup", "params": { "text": "!", "popup": "@" } },
+      { "weight": 1.0, "text": "7", "click": "sendText", "params": { "text": "7" } },
+      { "weight": 1.0, "text": "8", "click": "sendText", "params": { "text": "8" } },
+      { "weight": 1.0, "text": "9", "click": "sendText", "params": { "text": "9" } },
+      { "weight": 1.0, "text": "%", "hint": "[]", "click": "sendText", "longPress": "showPopup", "params": { "text": "%", "popup": "[]" } }
+    ]
+  },
+  {
+    "height": 55.0,
+    "keys": [
+      { "weight": 1.0, "text": "$", "hint": "?", "click": "sendText", "longPress": "showPopup", "params": { "text": "$", "popup": "?" } },
+      { "weight": 1.0, "text": "*", "click": "sendText", "params": { "text": "*" } },
+      { "weight": 1.0, "text": "0", "hint": "+", "click": "sendText", "longPress": "showPopup", "params": { "text": "0", "popup": "+" } },
+      { "weight": 1.0, "text": "#", "click": "sendText", "params": { "text": "#" } },
+      { "weight": 1.0, "text": "⌫", "click": "delete", "longPress": "loop", "horizontalSwipe": "delete", "params": {} }
+    ]
+  },
+  {
+    "height": 60.0,
+    "keys": [
+      { "weight": 1.5, "text": "abc", "click": "switchSymbols", "params": {} },
+      { "weight": 1.0, "text": "😁", "click": "openEmoji", "params": {} },
+      { "weight": 1.0, "text": ",", "click": "sendText", "params": { "text": "," } },
+      { "weight": 3.0, "text": "العربية", "hint": "English", "click": "sendText", "horizontalSwipe": "switchLang", "params": { "text": " " } },
+      { "weight": 1.0, "text": ".", "click": "sendText", "params": { "text": "." } },
+      { "weight": 1.0, "text": "📋", "click": "openClipboard", "params": {} },
+      { "weight": 1.5, "text": "⏎", "click": "sendCode", "params": { "code": 66 } }
+    ]
+  }
+]
