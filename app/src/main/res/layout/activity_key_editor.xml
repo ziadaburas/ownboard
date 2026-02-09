@@ -35,49 +35,13 @@
                 android:layout_height="wrap_content" 
                 android:layout_marginBottom="8dp"/>
                 
-            <LinearLayout 
-                android:layout_width="match_parent" 
-                android:layout_height="wrap_content" 
-                android:orientation="horizontal" 
-                android:weightSum="3">
-                
-                <EditText 
-                    android:id="@+id/input_text" 
-                    android:hint="النص" 
-                    android:layout_width="0dp" 
-                    android:layout_height="wrap_content" 
-                    android:layout_weight="1" 
-                    android:background="@android:drawable/editbox_background" 
-                    android:padding="10dp" 
-                    android:layout_marginEnd="4dp"/>
-                    
-                <EditText 
-                    android:id="@+id/input_hint" 
-                    android:hint="تلميح" 
-                    android:layout_width="0dp" 
-                    android:layout_height="wrap_content" 
-                    android:layout_weight="1" 
-                    android:background="@android:drawable/editbox_background" 
-                    android:padding="10dp" 
-                    android:layout_marginEnd="4dp"/>
-                    
-                <EditText 
-                    android:id="@+id/input_weight" 
-                    android:hint="الوزن" 
-                    android:inputType="numberDecimal" 
-                    android:layout_width="0dp" 
-                    android:layout_height="wrap_content" 
-                    android:layout_weight="1" 
-                    android:background="@android:drawable/editbox_background" 
-                    android:padding="10dp"/>
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:weightSum="3">
+                <EditText android:id="@+id/input_text" android:hint="النص" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:background="@android:drawable/editbox_background" android:padding="10dp" android:layout_marginEnd="4dp"/>
+                <EditText android:id="@+id/input_hint" android:hint="تلميح" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:background="@android:drawable/editbox_background" android:padding="10dp" android:layout_marginEnd="4dp"/>
+                <EditText android:id="@+id/input_weight" android:hint="الوزن" android:inputType="numberDecimal" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:background="@android:drawable/editbox_background" android:padding="10dp"/>
             </LinearLayout>
 
-            <View 
-                android:layout_width="match_parent" 
-                android:layout_height="1dp" 
-                android:background="#CCCCCC" 
-                android:layout_marginTop="16dp" 
-                android:layout_marginBottom="16dp"/>
+            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#CCCCCC" android:layout_marginTop="16dp" android:layout_marginBottom="16dp"/>
 
             <TextView 
                 android:text="عند النقر (Click)" 
@@ -87,43 +51,14 @@
                 android:layout_height="wrap_content" 
                 android:layout_marginBottom="8dp"/>
                 
-            <Spinner 
-                android:id="@+id/spinner_click" 
-                android:layout_width="match_parent" 
-                android:layout_height="50dp" 
-                android:background="@android:drawable/btn_dropdown" 
-                android:layout_marginBottom="8dp"/>
+            <Spinner android:id="@+id/spinner_click" android:layout_width="match_parent" android:layout_height="50dp" android:background="@android:drawable/btn_dropdown" android:layout_marginBottom="8dp"/>
             
-            <LinearLayout 
-                android:layout_width="match_parent" 
-                android:layout_height="wrap_content" 
-                android:orientation="horizontal">
-                
-                <EditText 
-                    android:id="@+id/input_text_click" 
-                    android:hint="text param" 
-                    android:layout_width="0dp" 
-                    android:layout_height="wrap_content" 
-                    android:layout_weight="1" 
-                    android:layout_marginEnd="4dp" 
-                    android:textSize="14sp"/>
-                    
-                <EditText 
-                    android:id="@+id/input_code_click" 
-                    android:hint="code param" 
-                    android:inputType="numberSigned" 
-                    android:layout_width="0dp" 
-                    android:layout_height="wrap_content" 
-                    android:layout_weight="1" 
-                    android:textSize="14sp"/>
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+                <EditText android:id="@+id/input_text_click" android:hint="text param" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="4dp" android:textSize="14sp"/>
+                <EditText android:id="@+id/input_code_click" android:hint="code param" android:inputType="numberSigned" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textSize="14sp"/>
             </LinearLayout>
 
-            <View 
-                android:layout_width="match_parent" 
-                android:layout_height="1dp" 
-                android:background="#CCCCCC" 
-                android:layout_marginTop="16dp" 
-                android:layout_marginBottom="16dp"/>
+            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#CCCCCC" android:layout_marginTop="16dp" android:layout_marginBottom="16dp"/>
 
             <TextView 
                 android:text="عند الضغط المطول" 
@@ -133,43 +68,22 @@
                 android:layout_height="wrap_content" 
                 android:layout_marginBottom="8dp"/>
                 
-            <Spinner 
-                android:id="@+id/spinner_long_press" 
-                android:layout_width="match_parent" 
-                android:layout_height="50dp" 
-                android:background="@android:drawable/btn_dropdown" 
-                android:layout_marginBottom="8dp"/>
+            <Spinner android:id="@+id/spinner_long_press" android:layout_width="match_parent" android:layout_height="50dp" android:background="@android:drawable/btn_dropdown" android:layout_marginBottom="8dp"/>
             
-            <LinearLayout 
-                android:layout_width="match_parent" 
-                android:layout_height="wrap_content" 
-                android:orientation="horizontal">
-                
-                <EditText 
-                    android:id="@+id/input_text_long" 
-                    android:hint="lpText param" 
-                    android:layout_width="0dp" 
-                    android:layout_height="wrap_content" 
-                    android:layout_weight="1" 
-                    android:layout_marginEnd="4dp" 
-                    android:textSize="14sp"/>
-                    
-                <EditText 
-                    android:id="@+id/input_code_long" 
-                    android:hint="lpCode param" 
-                    android:inputType="numberSigned" 
-                    android:layout_width="0dp" 
-                    android:layout_height="wrap_content" 
-                    android:layout_weight="1" 
-                    android:textSize="14sp"/>
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+                <EditText android:id="@+id/input_text_long" android:hint="lpText param" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="4dp" android:textSize="14sp"/>
+                <EditText android:id="@+id/input_code_long" android:hint="lpCode param" android:inputType="numberSigned" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textSize="14sp"/>
             </LinearLayout>
 
-            <View 
+            <EditText 
+                android:id="@+id/input_popup_chars" 
+                android:hint="Popup Chars (space separated)" 
                 android:layout_width="match_parent" 
-                android:layout_height="1dp" 
-                android:background="#CCCCCC" 
-                android:layout_marginTop="16dp" 
-                android:layout_marginBottom="16dp"/>
+                android:layout_height="wrap_content" 
+                android:layout_marginTop="8dp"
+                android:textSize="14sp"/>
+
+            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#CCCCCC" android:layout_marginTop="16dp" android:layout_marginBottom="16dp"/>
 
             <TextView 
                 android:text="سحب أفقي (Horizontal)" 
@@ -179,45 +93,13 @@
                 android:layout_height="wrap_content" 
                 android:layout_marginBottom="8dp"/>
             
-            <Spinner 
-                android:id="@+id/spinner_horizontal" 
-                android:layout_width="match_parent" 
-                android:layout_height="50dp" 
-                android:background="@android:drawable/btn_dropdown" 
-                android:layout_marginBottom="8dp"/>
+            <Spinner android:id="@+id/spinner_horizontal" android:layout_width="match_parent" android:layout_height="50dp" android:background="@android:drawable/btn_dropdown" android:layout_marginBottom="8dp"/>
             
-            <LinearLayout 
-                android:layout_width="match_parent" 
-                android:layout_height="wrap_content" 
-                android:orientation="horizontal" 
-                android:layout_marginBottom="12dp">
-                
-                <EditText 
-                    android:id="@+id/input_text_horizontal" 
-                    android:hint="hText param" 
-                    android:layout_width="0dp" 
-                    android:layout_height="wrap_content" 
-                    android:layout_weight="1" 
-                    android:layout_marginEnd="4dp" 
-                    android:textSize="14sp"/>
-                    
-                <EditText 
-                    android:id="@+id/input_code_horizontal" 
-                    android:hint="hCode param" 
-                    android:inputType="numberSigned" 
-                    android:layout_width="0dp" 
-                    android:layout_height="wrap_content" 
-                    android:layout_weight="1" 
-                    android:textSize="14sp"/>
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="12dp">
+                <EditText android:id="@+id/input_text_horizontal" android:hint="hText param" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="4dp" android:textSize="14sp"/>
+                <EditText android:id="@+id/input_code_horizontal" android:hint="hCode param" android:inputType="numberSigned" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textSize="14sp"/>
             </LinearLayout>
             
-            <View 
-                android:layout_width="match_parent" 
-                android:layout_height="1dp" 
-                android:background="#CCCCCC" 
-                android:layout_marginTop="4dp" 
-                android:layout_marginBottom="16dp"/>
-
             <TextView 
                 android:text="سحب عمودي (Vertical)" 
                 android:textStyle="bold" 
@@ -226,35 +108,11 @@
                 android:layout_height="wrap_content" 
                 android:layout_marginBottom="8dp"/>
 
-            <Spinner 
-                android:id="@+id/spinner_vertical" 
-                android:layout_width="match_parent" 
-                android:layout_height="50dp" 
-                android:background="@android:drawable/btn_dropdown" 
-                android:layout_marginBottom="8dp"/>
+            <Spinner android:id="@+id/spinner_vertical" android:layout_width="match_parent" android:layout_height="50dp" android:background="@android:drawable/btn_dropdown" android:layout_marginBottom="8dp"/>
             
-            <LinearLayout 
-                android:layout_width="match_parent" 
-                android:layout_height="wrap_content" 
-                android:orientation="horizontal">
-                
-                <EditText 
-                    android:id="@+id/input_text_vertical" 
-                    android:hint="vText param" 
-                    android:layout_width="0dp" 
-                    android:layout_height="wrap_content" 
-                    android:layout_weight="1" 
-                    android:layout_marginEnd="4dp" 
-                    android:textSize="14sp"/>
-                    
-                <EditText 
-                    android:id="@+id/input_code_vertical" 
-                    android:hint="vCode param" 
-                    android:inputType="numberSigned" 
-                    android:layout_width="0dp" 
-                    android:layout_height="wrap_content" 
-                    android:layout_weight="1" 
-                    android:textSize="14sp"/>
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+                <EditText android:id="@+id/input_text_vertical" android:hint="vText param" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="4dp" android:textSize="14sp"/>
+                <EditText android:id="@+id/input_code_vertical" android:hint="vCode param" android:inputType="numberSigned" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textSize="14sp"/>
             </LinearLayout>
 
         </LinearLayout>

@@ -22,24 +22,19 @@ constructor(
     val screenWidth = context.resources.displayMetrics.widthPixels
     val screenHeight = context.resources.displayMetrics.heightPixels
 
-    // ============================================================
-    // دوال المعالجة الجديدة (New Swipe Handlers)
-    // ============================================================
-    // Int Parameter indicates direction:
-    // Horizontal: 1 = Right, -1 = Left
-    // Vertical:   1 = Down,  -1 = Up
     var onHorizontalSwipeFn: (Int) -> Unit = {}
     var onVerticalSwipeFn: (Int) -> Unit = {}
     
-    // تم حذف onLeftScrollFn و onRightScrollFn واستبدالهم بالدوال أعلاه
-
+    // ==========================================
+    // التعديل هنا: فك الارتباط
+    // ==========================================
     var hint = ""
         set(value) {
             field = value
-            popupKeys = if (value.isNotEmpty()) value.split(" ") else emptyList()
-            popupWidth = (btnWidth * popupKeys.size).toFloat()
+            // تم حذف كود popupKeys = ... من هنا
             invalidate()
         }
+
     var btnWidth = 0
     open var backgroundImg = 0
         set(value) {
@@ -74,9 +69,8 @@ constructor(
     var keyWeight = 1f
     open var keyCode = 0
     
-    // متغيرات اللمس
     var touchStartX = 0f
-    var touchStartY = 0f // إضافة Y لدعم السحب العمودي
+    var touchStartY = 0f 
     var offset = 0
     
     open var mtextSize = 18f
@@ -106,6 +100,8 @@ constructor(
         isAntiAlias = true
         typeface = Typeface.DEFAULT_BOLD
     }
+    
+    // قائمة الحروف المنبثقة (يتم تعبئتها الآن من All.kt)
     var popupKeys: List<String> = emptyList()
     var popupWidth = 0f
     
@@ -161,7 +157,6 @@ constructor(
         val cx = width / 2
         val cy = height / 2
         
-        // رسم الخلفية
         canvas.drawColor(Color.TRANSPARENT)
         val rectPaint = Paint().apply {
             color = bgColor
@@ -169,7 +164,6 @@ constructor(
         }
         canvas.drawRect(inset, inset, width.toFloat() - inset, height.toFloat() - inset, rectPaint)
         
-        // رسم الصورة إذا وجدت
         _backgroundImg?.let {
             val imgcx = it.intrinsicWidth / 2
             val imgcy = it.intrinsicHeight / 2
@@ -178,13 +172,12 @@ constructor(
             return@onDraw
         }
         
-        // رسم النص
         canvas.drawText(text, centerX, centerY, textPaint)
         
-        // رسم التلميح
         val fm = topRightPaint.fontMetrics
         val y = inset - fm.ascent
         val topTextX = width.toFloat() - 2 * inset
+        // Hint يبقى كما هو للعرض فقط
         canvas.drawText(hint.split(" ").take(2).joinToString(""), topTextX, y, topRightPaint) 
     }
   
@@ -206,7 +199,7 @@ constructor(
         setBackgroundColor(Color.CYAN.toInt())
         
         touchStartX = e.x 
-        touchStartY = e.y // حفظ نقطة البداية العمودية
+        touchStartY = e.y 
         offset = 0
         return true
     }
@@ -216,48 +209,37 @@ constructor(
         longPressHandler.removeCallbacks(longPressRunnable)
         val pressDuration = e.eventTime - e.downTime
         
-        // إعادة تعيين لون الخلفية
         if (!isSpecialKey) setBackgroundColor(0xFF2D2D2D.toInt())
 
-        // تحديد عتبة السحب (الحساسية)
-        val threshold = btnWidth / 2.5 // تقليل العتبة قليلاً لتسهيل السحب
+        val threshold = btnWidth / 2.5 
 
         val dx = e.x - touchStartX
         val dy = e.y - touchStartY
         
-        // التحقق من السحب (Swipe Check)
         if (pressDuration < longPressTimeout) {
-            
-            // تحديد الاتجاه الأقوى (أفقي أم عمودي؟)
             if (abs(dx) > abs(dy)) {
-                // --- معالجة السحب الأفقي ---
                 if (abs(dx) > threshold) {
-                    val direction = if (dx > 0) 1 else -1 // 1: يمين، -1: يسار
+                    val direction = if (dx > 0) 1 else -1 
                     post {
                         onHorizontalSwipeFn(direction)
                         setBackgroundColor(0xFF2D2D2D.toInt())
                     }
-                    // تم تنفيذ سحب، نخرج ولا ننفذ Click
                     return true 
                 }
             } else {
-                // --- معالجة السحب العمودي ---
                 if (abs(dy) > threshold) {
-                    val direction = if (dy > 0) 1 else -1 // 1: أسفل، -1: أعلى
+                    val direction = if (dy > 0) 1 else -1 
                     post {
                         onVerticalSwipeFn(direction)
                         setBackgroundColor(0xFF2D2D2D.toInt())
                     }
-                    // تم تنفيذ سحب، نخرج ولا ننفذ Click
                     return true
                 }
             }
         }
 
-        // التحقق من أن الإصبع ما زال فوق الزر للنقر العادي
         if (!isActionUp(e.rawX.toInt(), e.rawY.toInt())) return false
         
-        // تنفيذ النقر العادي إذا لم يتحقق أي شرط سحب
         if (pressDuration < longPressTimeout) {
             onClick()
         }
@@ -266,8 +248,6 @@ constructor(
     }
 
     open fun actionMove(e: MotionEvent): Boolean {
-        // نحدث الـ offset فقط للأغراض التي قد تحتاجها لاحقاً
-        // لكن المنطق الرئيسي يعتمد الآن على dx/dy في actionUp
         offset = (e.x - touchStartX).toInt()
         return true
     }
@@ -306,10 +286,10 @@ constructor(
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
         btnWidth = w
+        // إعادة حساب العرض بناءً على القائمة الحالية (التي قد تكون فارغة أو معبأة)
         popupWidth = (btnWidth * popupKeys.size).toFloat()
     }
 
-    // دوال مساعدة للإرسال
     fun sendText() {
         OwnboardIME.ime.sendKeyPress(text)
     }

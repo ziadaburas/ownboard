@@ -9,16 +9,13 @@ class LayoutDatabase(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
 
     companion object {
         private const val DATABASE_NAME = "keyboard_layouts.db"
-        // قمنا بتحديث الإصدار لإجبار التطبيق على إعادة إنشاء الجدول بالهيكلة الجديدة للـ JSON
-        private const val DATABASE_VERSION = 3
+        private const val DATABASE_VERSION = 4 // زيادة الإصدار لتحديث التغييرات
         private const val TABLE_NAME = "layouts"
         private const val COL_LANG = "lang"
         private const val COL_JSON = "json_data"
 
         // ==========================================
-        // البيانات الافتراضية المحسنة (New Structure)
-        // تم دمج المعلمات داخل كائن "params"
-        // تم استبدال left/right بـ horizontalSwipe و verticalSwipe
+        // البيانات الافتراضية مع دعم "popup" param
         // ==========================================
 
         private const val DEFAULT_AR_JSON = """
@@ -39,60 +36,60 @@ class LayoutDatabase(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
       "row2": {
         "height": 55.0,
         "keys": [
-          { "weight": 1.0, "text": "1", "hint": "j k", "click": "sendText", "longPress": "showPopup", "verticalSwipe": "sendText", "params": { "text": "1", "vText": "!" } },
-          { "weight": 1.0, "text": "2", "hint": "\"", "click": "sendText", "longPress": "showPopup", "params": { "text": "2" } },
-          { "weight": 1.0, "text": "3", "hint": "·", "click": "sendText", "longPress": "showPopup", "params": { "text": "3" } },
-          { "weight": 1.0, "text": "4", "hint": ":", "click": "sendText", "longPress": "showPopup", "params": { "text": "4" } },
-          { "weight": 1.0, "text": "5", "hint": "؟", "click": "sendText", "longPress": "showPopup", "params": { "text": "5" } },
-          { "weight": 1.0, "text": "6", "hint": "؛ j k", "click": "sendText", "longPress": "showPopup", "horizontalSwipe": "switchLang", "params": { "text": "6" } },
-          { "weight": 1.0, "text": "7", "hint": "-", "click": "sendText", "longPress": "showPopup", "horizontalSwipe": "sendText", "params": { "text": "7", "hText": "cc" } },
-          { "weight": 1.0, "text": "8", "hint": "_", "click": "sendText", "longPress": "showPopup", "params": { "text": "8" } },
-          { "weight": 1.0, "text": "9", "hint": "(", "click": "sendText", "longPress": "showPopup", "params": { "text": "9" } },
-          { "weight": 1.0, "text": "0", "hint": ")", "click": "sendText", "longPress": "showPopup", "params": { "text": "0" } }
+          { "weight": 1.0, "text": "1", "hint": "j k", "click": "sendText", "longPress": "showPopup", "verticalSwipe": "sendText", "params": { "text": "1", "vText": "!", "popup": "j k" } },
+          { "weight": 1.0, "text": "2", "hint": "\"", "click": "sendText", "longPress": "showPopup", "params": { "text": "2", "popup": "\"" } },
+          { "weight": 1.0, "text": "3", "hint": "·", "click": "sendText", "longPress": "showPopup", "params": { "text": "3", "popup": "·" } },
+          { "weight": 1.0, "text": "4", "hint": ":", "click": "sendText", "longPress": "showPopup", "params": { "text": "4", "popup": ":" } },
+          { "weight": 1.0, "text": "5", "hint": "؟", "click": "sendText", "longPress": "showPopup", "params": { "text": "5", "popup": "؟" } },
+          { "weight": 1.0, "text": "6", "hint": "؛ j k", "click": "sendText", "longPress": "showPopup", "horizontalSwipe": "switchLang", "params": { "text": "6", "popup": "؛ j k" } },
+          { "weight": 1.0, "text": "7", "hint": "-", "click": "sendText", "longPress": "showPopup", "horizontalSwipe": "sendText", "params": { "text": "7", "hText": "cc", "popup": "-" } },
+          { "weight": 1.0, "text": "8", "hint": "_", "click": "sendText", "longPress": "showPopup", "params": { "text": "8", "popup": "_" } },
+          { "weight": 1.0, "text": "9", "hint": "(", "click": "sendText", "longPress": "showPopup", "params": { "text": "9", "popup": "(" } },
+          { "weight": 1.0, "text": "0", "hint": ")", "click": "sendText", "longPress": "showPopup", "params": { "text": "0", "popup": ")" } }
         ]
       },
       "row3": {
         "height": 55.0,
         "keys": [
-          { "weight": 1.0, "text": "ض", "hint": "!", "click": "sendText", "longPress": "showPopup", "params": { "text": "ض" } },
+          { "weight": 1.0, "text": "ض", "hint": "!", "click": "sendText", "longPress": "showPopup", "params": { "text": "ض", "popup": "!" } },
           { "weight": 1.0, "text": "ص", "hint": "!", "click": "sendText", "longPress": "loop", "params": { "text": "ص" } },
-          { "weight": 1.0, "text": "ق", "hint": "!", "click": "sendText", "longPress": "showPopup", "params": { "text": "ق" } },
-          { "weight": 1.0, "text": "ف", "hint": "!", "click": "sendText", "longPress": "showPopup", "params": { "text": "ف" } },
-          { "weight": 1.0, "text": "غ", "hint": "!", "click": "sendText", "longPress": "showPopup", "params": { "text": "غ" } },
-          { "weight": 1.0, "text": "ع", "hint": "!", "click": "sendText", "longPress": "showPopup", "params": { "text": "ع" } },
-          { "weight": 1.0, "text": "ه", "hint": "!", "click": "sendText", "longPress": "showPopup", "params": { "text": "ه" } },
-          { "weight": 1.0, "text": "خ", "hint": "!", "click": "sendText", "longPress": "showPopup", "params": { "text": "خ" } },
-          { "weight": 1.0, "text": "ح", "hint": "!", "click": "sendText", "longPress": "showPopup", "params": { "text": "ح" } },
-          { "weight": 1.0, "text": "ج", "hint": "!", "click": "sendText", "longPress": "showPopup", "params": { "text": "ج" } }
+          { "weight": 1.0, "text": "ق", "hint": "!", "click": "sendText", "longPress": "showPopup", "params": { "text": "ق", "popup": "!" } },
+          { "weight": 1.0, "text": "ف", "hint": "!", "click": "sendText", "longPress": "showPopup", "params": { "text": "ف", "popup": "!" } },
+          { "weight": 1.0, "text": "غ", "hint": "!", "click": "sendText", "longPress": "showPopup", "params": { "text": "غ", "popup": "!" } },
+          { "weight": 1.0, "text": "ع", "hint": "!", "click": "sendText", "longPress": "showPopup", "params": { "text": "ع", "popup": "!" } },
+          { "weight": 1.0, "text": "ه", "hint": "!", "click": "sendText", "longPress": "showPopup", "params": { "text": "ه", "popup": "!" } },
+          { "weight": 1.0, "text": "خ", "hint": "!", "click": "sendText", "longPress": "showPopup", "params": { "text": "خ", "popup": "!" } },
+          { "weight": 1.0, "text": "ح", "hint": "!", "click": "sendText", "longPress": "showPopup", "params": { "text": "ح", "popup": "!" } },
+          { "weight": 1.0, "text": "ج", "hint": "!", "click": "sendText", "longPress": "showPopup", "params": { "text": "ج", "popup": "!" } }
         ]
       },
       "row4": {
         "height": 55.0,
         "keys": [
-          { "weight": 1.0, "text": "ش", "hint": "!", "click": "sendText", "longPress": "showPopup", "params": { "text": "ش" } },
-          { "weight": 1.0, "text": "س", "hint": "!", "click": "sendText", "longPress": "showPopup", "params": { "text": "س" } },
-          { "weight": 1.0, "text": "ي", "hint": "ى ئ", "click": "sendText", "longPress": "showPopup", "params": { "text": "ي" } },
-          { "weight": 1.0, "text": "ب", "hint": "!", "click": "sendText", "longPress": "showPopup", "params": { "text": "ب" } },
-          { "weight": 1.0, "text": "ل", "hint": "!", "click": "sendText", "longPress": "showPopup", "params": { "text": "ل" } },
-          { "weight": 1.0, "text": "ا", "hint": "ء أ إ آ", "click": "sendText", "longPress": "showPopup", "params": { "text": "ا" } },
-          { "weight": 1.0, "text": "ت", "hint": "ـ", "click": "sendText", "longPress": "showPopup", "params": { "text": "ت" } },
-          { "weight": 1.0, "text": "ن", "hint": "!", "click": "sendText", "longPress": "showPopup", "params": { "text": "ن" } },
-          { "weight": 1.0, "text": "م", "hint": "!", "click": "sendText", "longPress": "showPopup", "params": { "text": "م" } },
-          { "weight": 1.0, "text": "ك", "hint": "؛", "click": "sendText", "longPress": "showPopup", "params": { "text": "ك" } }
+          { "weight": 1.0, "text": "ش", "hint": "!", "click": "sendText", "longPress": "showPopup", "params": { "text": "ش", "popup": "!" } },
+          { "weight": 1.0, "text": "س", "hint": "!", "click": "sendText", "longPress": "showPopup", "params": { "text": "س", "popup": "!" } },
+          { "weight": 1.0, "text": "ي", "hint": "ى ئ", "click": "sendText", "longPress": "showPopup", "params": { "text": "ي", "popup": "ى ئ" } },
+          { "weight": 1.0, "text": "ب", "hint": "!", "click": "sendText", "longPress": "showPopup", "params": { "text": "ب", "popup": "!" } },
+          { "weight": 1.0, "text": "ل", "hint": "!", "click": "sendText", "longPress": "showPopup", "params": { "text": "ل", "popup": "!" } },
+          { "weight": 1.0, "text": "ا", "hint": "ء أ إ آ", "click": "sendText", "longPress": "showPopup", "params": { "text": "ا", "popup": "ء أ إ آ" } },
+          { "weight": 1.0, "text": "ت", "hint": "ـ", "click": "sendText", "longPress": "showPopup", "params": { "text": "ت", "popup": "ـ" } },
+          { "weight": 1.0, "text": "ن", "hint": "!", "click": "sendText", "longPress": "showPopup", "params": { "text": "ن", "popup": "!" } },
+          { "weight": 1.0, "text": "م", "hint": "!", "click": "sendText", "longPress": "showPopup", "params": { "text": "م", "popup": "!" } },
+          { "weight": 1.0, "text": "ك", "hint": "؛", "click": "sendText", "longPress": "showPopup", "params": { "text": "ك", "popup": "؛" } }
         ]
       },
       "row5": {
         "height": 55.0,
         "keys": [
-          { "weight": 1.0, "text": "ظ", "hint": "َ ِ ُ ً ٍ ٌ ّ ْ", "click": "sendText", "longPress": "showPopup", "params": { "text": "ظ" } },
-          { "weight": 1.0, "text": "ط", "hint": "!", "click": "sendText", "longPress": "showPopup", "params": { "text": "ط" } },
-          { "weight": 1.0, "text": "ذ", "hint": "!", "click": "sendText", "longPress": "showPopup", "params": { "text": "ذ" } },
-          { "weight": 1.0, "text": "د", "hint": "!", "click": "sendText", "longPress": "showPopup", "params": { "text": "د" } },
-          { "weight": 1.0, "text": "ز", "hint": "!", "click": "sendText", "longPress": "showPopup", "params": { "text": "ز" } },
-          { "weight": 1.0, "text": "ر", "hint": "!", "click": "sendText", "longPress": "showPopup", "params": { "text": "ر" } },
-          { "weight": 1.0, "text": "و", "hint": "ؤ", "click": "sendText", "longPress": "showPopup", "params": { "text": "و" } },
-          { "weight": 1.0, "text": "ة", "hint": "!", "click": "sendText", "longPress": "showPopup", "params": { "text": "ة" } },
-          { "weight": 1.0, "text": "ث", "hint": "!", "click": "sendText", "longPress": "showPopup", "params": { "text": "ث" } },
+          { "weight": 1.0, "text": "ظ", "hint": "َ ِ ُ ً ٍ ٌ ّ ْ", "click": "sendText", "longPress": "showPopup", "params": { "text": "ظ", "popup": "َ ِ ُ ً ٍ ٌ ّ ْ" } },
+          { "weight": 1.0, "text": "ط", "hint": "!", "click": "sendText", "longPress": "showPopup", "params": { "text": "ط", "popup": "!" } },
+          { "weight": 1.0, "text": "ذ", "hint": "!", "click": "sendText", "longPress": "showPopup", "params": { "text": "ذ", "popup": "!" } },
+          { "weight": 1.0, "text": "د", "hint": "!", "click": "sendText", "longPress": "showPopup", "params": { "text": "د", "popup": "!" } },
+          { "weight": 1.0, "text": "ز", "hint": "!", "click": "sendText", "longPress": "showPopup", "params": { "text": "ز", "popup": "!" } },
+          { "weight": 1.0, "text": "ر", "hint": "!", "click": "sendText", "longPress": "showPopup", "params": { "text": "ر", "popup": "!" } },
+          { "weight": 1.0, "text": "و", "hint": "ؤ", "click": "sendText", "longPress": "showPopup", "params": { "text": "و", "popup": "ؤ" } },
+          { "weight": 1.0, "text": "ة", "hint": "!", "click": "sendText", "longPress": "showPopup", "params": { "text": "ة", "popup": "!" } },
+          { "weight": 1.0, "text": "ث", "hint": "!", "click": "sendText", "longPress": "showPopup", "params": { "text": "ث", "popup": "!" } },
           { "weight": 1.5, "text": "⌫", "click": "delete", "longPress": "loop", "horizontalSwipe": "delete", "params": {} }
         ]
       },
@@ -129,58 +126,58 @@ class LayoutDatabase(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
   "row2": {
     "height": 55.0,
     "keys": [
-      { "weight": 1.0, "text": "1", "hint": "!", "click": "sendText", "longPress": "showPopup", "params": { "text": "1" } },
-      { "weight": 1.0, "text": "2", "hint": "@", "click": "sendText", "longPress": "showPopup", "params": { "text": "2" } },
-      { "weight": 1.0, "text": "3", "hint": "#", "click": "sendText", "longPress": "showPopup", "params": { "text": "3" } },
-      { "weight": 1.0, "text": "4", "hint": "$", "click": "sendText", "longPress": "showPopup", "params": { "text": "4" } },
-      { "weight": 1.0, "text": "5", "hint": "%", "click": "sendText", "longPress": "showPopup", "params": { "text": "5" } },
-      { "weight": 1.0, "text": "6", "hint": "^", "click": "sendText", "longPress": "showPopup", "params": { "text": "6" } },
-      { "weight": 1.0, "text": "7", "hint": "&", "click": "sendText", "longPress": "showPopup", "params": { "text": "7" } },
-      { "weight": 1.0, "text": "8", "hint": "*", "click": "sendText", "longPress": "showPopup", "params": { "text": "8" } },
-      { "weight": 1.0, "text": "9", "hint": "(", "click": "sendText", "longPress": "showPopup", "params": { "text": "9" } },
-      { "weight": 1.0, "text": "0", "hint": ")", "click": "sendText", "longPress": "showPopup", "params": { "text": "0" } }
+      { "weight": 1.0, "text": "1", "hint": "!", "click": "sendText", "longPress": "showPopup", "params": { "text": "1", "popup": "!" } },
+      { "weight": 1.0, "text": "2", "hint": "@", "click": "sendText", "longPress": "showPopup", "params": { "text": "2", "popup": "@" } },
+      { "weight": 1.0, "text": "3", "hint": "#", "click": "sendText", "longPress": "showPopup", "params": { "text": "3", "popup": "#" } },
+      { "weight": 1.0, "text": "4", "hint": "$", "click": "sendText", "longPress": "showPopup", "params": { "text": "4", "popup": "$" } },
+      { "weight": 1.0, "text": "5", "hint": "%", "click": "sendText", "longPress": "showPopup", "params": { "text": "5", "popup": "%" } },
+      { "weight": 1.0, "text": "6", "hint": "^", "click": "sendText", "longPress": "showPopup", "params": { "text": "6", "popup": "^" } },
+      { "weight": 1.0, "text": "7", "hint": "&", "click": "sendText", "longPress": "showPopup", "params": { "text": "7", "popup": "&" } },
+      { "weight": 1.0, "text": "8", "hint": "*", "click": "sendText", "longPress": "showPopup", "params": { "text": "8", "popup": "*" } },
+      { "weight": 1.0, "text": "9", "hint": "(", "click": "sendText", "longPress": "showPopup", "params": { "text": "9", "popup": "(" } },
+      { "weight": 1.0, "text": "0", "hint": ")", "click": "sendText", "longPress": "showPopup", "params": { "text": "0", "popup": ")" } }
     ]
   },
   "row3": {
     "height": 55.0,
     "keys": [
-      { "weight": 1.0, "text": "q", "hint": "( ) ()", "click": "sendText", "longPress": "showPopup", "params": { "text": "q" } },
-      { "weight": 1.0, "text": "w", "hint": "{ } {}", "click": "sendText", "longPress": "showPopup", "params": { "text": "w" } },
-      { "weight": 1.0, "text": "e", "hint": "[ ] []", "click": "sendText", "longPress": "showPopup", "params": { "text": "e" } },
-      { "weight": 1.0, "text": "r", "hint": "& &&", "click": "sendText", "longPress": "showPopup", "params": { "text": "r" } },
-      { "weight": 1.0, "text": "t", "hint": "| ||", "click": "sendText", "longPress": "showPopup", "params": { "text": "t" } },
-      { "weight": 1.0, "text": "y", "hint": "= == =>", "click": "sendText", "longPress": "showPopup", "params": { "text": "y" } },
-      { "weight": 1.0, "text": "u", "hint": "+ ++ +=", "click": "sendText", "longPress": "showPopup", "horizontalSwipe": "sendText", "params": { "text": "u", "hText": "++" } },
-      { "weight": 1.0, "text": "i", "hint": "- ->", "click": "sendText", "longPress": "showPopup", "params": { "text": "i" } },
-      { "weight": 1.0, "text": "o", "hint": "$", "click": "sendText", "longPress": "showPopup", "params": { "text": "o" } },
-      { "weight": 1.0, "text": "p", "hint": "#", "click": "sendText", "longPress": "showPopup", "params": { "text": "p" } }
+      { "weight": 1.0, "text": "q", "hint": "( ) ()", "click": "sendText", "longPress": "showPopup", "params": { "text": "q", "popup": "( ) ()" } },
+      { "weight": 1.0, "text": "w", "hint": "{ } {}", "click": "sendText", "longPress": "showPopup", "params": { "text": "w", "popup": "{ } {}" } },
+      { "weight": 1.0, "text": "e", "hint": "[ ] []", "click": "sendText", "longPress": "showPopup", "params": { "text": "e", "popup": "[ ] []" } },
+      { "weight": 1.0, "text": "r", "hint": "& &&", "click": "sendText", "longPress": "showPopup", "params": { "text": "r", "popup": "& &&" } },
+      { "weight": 1.0, "text": "t", "hint": "| ||", "click": "sendText", "longPress": "showPopup", "params": { "text": "t", "popup": "| ||" } },
+      { "weight": 1.0, "text": "y", "hint": "= == =>", "click": "sendText", "longPress": "showPopup", "params": { "text": "y", "popup": "= == =>" } },
+      { "weight": 1.0, "text": "u", "hint": "+ ++ +=", "click": "sendText", "longPress": "showPopup", "horizontalSwipe": "sendText", "params": { "text": "u", "hText": "++", "popup": "+ ++ +=" } },
+      { "weight": 1.0, "text": "i", "hint": "- ->", "click": "sendText", "longPress": "showPopup", "params": { "text": "i", "popup": "- ->" } },
+      { "weight": 1.0, "text": "o", "hint": "$", "click": "sendText", "longPress": "showPopup", "params": { "text": "o", "popup": "$" } },
+      { "weight": 1.0, "text": "p", "hint": "#", "click": "sendText", "longPress": "showPopup", "params": { "text": "p", "popup": "#" } }
     ]
   },
   "row4": {
     "height": 55.0,
     "keys": [
-      { "weight": 1.0, "text": "a", "hint": "@ • @gmail.com", "click": "sendText", "longPress": "showPopup", "params": { "text": "a" } },
-      { "weight": 1.0, "text": "s", "hint": "! !=", "click": "sendText", "longPress": "showPopup", "params": { "text": "s" } },
-      { "weight": 1.0, "text": "d", "hint": "~", "click": "sendText", "longPress": "showPopup", "params": { "text": "d" } },
-      { "weight": 1.0, "text": "f", "hint": "?", "click": "sendText", "longPress": "showPopup", "params": { "text": "f" } },
-      { "weight": 1.0, "text": "g", "hint": "* **", "click": "sendText", "longPress": "showPopup", "params": { "text": "g" } },
-      { "weight": 1.0, "text": "h", "hint": "%", "click": "sendText", "longPress": "showPopup", "params": { "text": "h" } },
-      { "weight": 1.0, "text": "j", "hint": "_ __", "click": "sendText", "longPress": "showPopup", "params": { "text": "j" } },
-      { "weight": 1.0, "text": "k", "hint": ":", "click": "sendText", "longPress": "showPopup", "params": { "text": "k" } },
-      { "weight": 1.0, "text": "l", "hint": ";", "click": "sendText", "longPress": "showPopup", "params": { "text": "l" } }
+      { "weight": 1.0, "text": "a", "hint": "@ • @gmail.com", "click": "sendText", "longPress": "showPopup", "params": { "text": "a", "popup": "@ • @gmail.com" } },
+      { "weight": 1.0, "text": "s", "hint": "! !=", "click": "sendText", "longPress": "showPopup", "params": { "text": "s", "popup": "! !=" } },
+      { "weight": 1.0, "text": "d", "hint": "~", "click": "sendText", "longPress": "showPopup", "params": { "text": "d", "popup": "~" } },
+      { "weight": 1.0, "text": "f", "hint": "?", "click": "sendText", "longPress": "showPopup", "params": { "text": "f", "popup": "?" } },
+      { "weight": 1.0, "text": "g", "hint": "* **", "click": "sendText", "longPress": "showPopup", "params": { "text": "g", "popup": "* **" } },
+      { "weight": 1.0, "text": "h", "hint": "%", "click": "sendText", "longPress": "showPopup", "params": { "text": "h", "popup": "%" } },
+      { "weight": 1.0, "text": "j", "hint": "_ __", "click": "sendText", "longPress": "showPopup", "params": { "text": "j", "popup": "_ __" } },
+      { "weight": 1.0, "text": "k", "hint": ":", "click": "sendText", "longPress": "showPopup", "params": { "text": "k", "popup": ":" } },
+      { "weight": 1.0, "text": "l", "hint": ";", "click": "sendText", "longPress": "showPopup", "params": { "text": "l", "popup": ";" } }
     ]
   },
   "row5": {
     "height": 55.0,
     "keys": [
       { "weight": 1.5, "text": "⇧", "click": "sendSpecial", "verticalSwipe": "sendSpecial", "params": { "code": 115, "vCode": 115 } },
-      { "weight": 1.0, "text": "z", "hint": "' ''", "click": "sendText", "longPress": "showPopup", "params": { "text": "z" } },
-      { "weight": 1.0, "text": "x", "hint": "\" \"\"", "click": "sendText", "longPress": "showPopup", "params": { "text": "x" } },
-      { "weight": 1.0, "text": "c", "hint": "`", "click": "sendText", "longPress": "showPopup", "params": { "text": "c" } },
-      { "weight": 1.0, "text": "v", "hint": "< <= <>", "click": "sendText", "longPress": "showPopup", "params": { "text": "v" } },
-      { "weight": 1.0, "text": "b", "hint": "> >= </>", "click": "sendText", "longPress": "showPopup", "params": { "text": "b" } },
-      { "weight": 1.0, "text": "n", "hint": "/ // /**/", "click": "sendText", "longPress": "showPopup", "params": { "text": "n" } },
-      { "weight": 1.0, "text": "m", "hint": "\\", "click": "sendText", "longPress": "showPopup", "params": { "text": "m" } },
+      { "weight": 1.0, "text": "z", "hint": "' ''", "click": "sendText", "longPress": "showPopup", "params": { "text": "z", "popup": "' ''" } },
+      { "weight": 1.0, "text": "x", "hint": "\" \"\"", "click": "sendText", "longPress": "showPopup", "params": { "text": "x", "popup": "\" \"\"" } },
+      { "weight": 1.0, "text": "c", "hint": "`", "click": "sendText", "longPress": "showPopup", "params": { "text": "c", "popup": "`" } },
+      { "weight": 1.0, "text": "v", "hint": "< <= <>", "click": "sendText", "longPress": "showPopup", "params": { "text": "v", "popup": "< <= <>" } },
+      { "weight": 1.0, "text": "b", "hint": "> >= </>", "click": "sendText", "longPress": "showPopup", "params": { "text": "b", "popup": "> >= </>" } },
+      { "weight": 1.0, "text": "n", "hint": "/ // /**/", "click": "sendText", "longPress": "showPopup", "params": { "text": "n", "popup": "/ // /**/" } },
+      { "weight": 1.0, "text": "m", "hint": "\\", "click": "sendText", "longPress": "showPopup", "params": { "text": "m", "popup": "\\" } },
       { "weight": 1.5, "text": "⌫", "click": "delete", "longPress": "loop", "horizontalSwipe": "delete", "params": {} }
     ]
   },
@@ -268,7 +265,7 @@ class LayoutDatabase(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         val defaultJson = when(lang) {
             "ar" -> DEFAULT_AR_JSON
             "en" -> DEFAULT_EN_JSON
-            else -> return // لغة غير معروفة ليس لها افتراضي
+            else -> return 
         }
         updateLayout(lang, defaultJson)
     }

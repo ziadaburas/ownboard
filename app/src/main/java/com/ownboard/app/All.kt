@@ -19,10 +19,6 @@ constructor(
 
     companion object {
         
-        // ============================================================
-        // قوائم الوظائف المتاحة (Static Lists)
-        // ============================================================
-        
         val CLICK_FUNCTIONS = listOf(
             "", 
             "sendText",      
@@ -45,7 +41,6 @@ constructor(
              "holdSpecial"
         )
 
-        // تم دمج وظائف السحب (الأفقي والعمودي) في قائمة واحدة
         val SWIPE_FUNCTIONS = listOf(
             "",
             "sendText",
@@ -57,19 +52,29 @@ constructor(
     }
 
     // ============================================================
-    // المتغير الجديد الذي يجمع كل البيانات (Map)
+    // هنا يتم استقبال البيانات وتحليل الـ popup
     // ============================================================
     var params: Map<String, Any> = emptyMap()
         set(value) {
             field = value
             updateSpecialKeyStatus()
+            
+            // التعديل الجوهري: استخراج القائمة المنبثقة من المعلمات
+            val popupStr = value["popup"] as? String ?: ""
+            if (popupStr.isNotEmpty()) {
+                popupKeys = popupStr.split(" ")
+            } else {
+                popupKeys = emptyList()
+            }
+            // تحديث عرض القائمة المنبثقة
+            if (btnWidth > 0) {
+                popupWidth = (btnWidth * popupKeys.size).toFloat()
+            }
         }
 
-    // دوال مساعدة لاستخراج القيم بأمان
     private fun getParamString(key: String): String = params[key] as? String ?: ""
     private fun getParamInt(key: String): Int = (params[key] as? Number)?.toInt() ?: 0
 
-    // منطق تحديد هل الزر خاص (Shift/Ctrl/Alt) بناءً على الكود
     private fun updateSpecialKeyStatus() {
         val code = getParamInt("code")
         isSpecialKey = true
@@ -83,9 +88,6 @@ constructor(
         if(code > 0) isConstKey = true 
     }
 
-    // ============================================================
-    // معالجة النقر (Click)
-    // ============================================================
     open var click = ""
     set(value) {
         field = value
@@ -127,7 +129,7 @@ constructor(
                 }
             }
             "openEmoji" -> {
-                onClickFn = { /* Implement Emoji Open logic if needed */ }
+                onClickFn = { /* Implement Emoji Open logic */ }
             }
             "openClipboard" -> {
                 onClickFn = {
@@ -138,16 +140,12 @@ constructor(
         }
     }
 
-    // ============================================================
-    // معالجة الضغط المطول (Long Press)
-    // ============================================================
     open var longPress = ""
     set(value) {
         field = value
         when(value){
             "sendText"->{
                 onLongPressFn= {
-                    // نستخدم "lpText" إذا وجد، وإلا "text"
                     val txt = if(params.containsKey("lpText")) getParamString("lpText") else getParamString("text")
                     OwnboardIME.ime.sendKeyPress(txt) 
                 }
@@ -186,18 +184,12 @@ constructor(
         }
     }
 
-    // ============================================================
-    // معالجة السحب الأفقي (Horizontal Swipe)
-    // ============================================================
-    // المتغير `dir` يساوي 1 (يمين) أو -1 (يسار)
     open var horizontalSwipe = ""
     set(value) {
         field = value
         when(value){
             "sendText"->{
                 onHorizontalSwipeFn = { dir ->
-                    // نحاول البحث عن نص مخصص لليسار/اليمين أولاً، ثم النص الأفقي العام
-                    // hTextLeft, hTextRight, or hText
                     val txt = if(params.containsKey("hText")) getParamString("hText") else getParamString("text")
                     if(txt.isNotEmpty()) OwnboardIME.ime.sendKeyPress(txt) 
                 }
@@ -221,17 +213,12 @@ constructor(
         }
     }
 
-    // ============================================================
-    // معالجة السحب العمودي (Vertical Swipe)
-    // ============================================================
-    // المتغير `dir` يساوي 1 (أسفل) أو -1 (أعلى)
     open var verticalSwipe = ""
     set(value) {
         field = value
         when(value){
             "sendText"->{
                 onVerticalSwipeFn = { dir ->
-                    // vText, or vTextUp, vTextDown if you want to expand later
                     val txt = if(params.containsKey("vText")) getParamString("vText") else getParamString("text")
                     if(txt.isNotEmpty()) OwnboardIME.ime.sendKeyPress(txt) 
                 }
@@ -256,7 +243,6 @@ constructor(
         }
     }
 
-    // دالة مساعدة لتغيير اللغة وتحديث الأزرار
     private fun performLangSwitch() {
         OwnboardIME.ime.switchLang()
         Key.ctrl.notifyListeners()
@@ -265,9 +251,6 @@ constructor(
         Key.capslock.notifyListeners()
     }
 
-    // ============================================================
-    // منطق الـ Popup والقوائم المنبثقة
-    // ============================================================
     val popupBtns = mutableListOf<Button>()
     var isPopupVisible = false
     var selectedIndex = 0
@@ -304,7 +287,6 @@ constructor(
     }
     
     open fun disable() {
-        // نستخدم الكود الافتراضي عند التعطيل (KeyUp)
         val code = getParamInt("code")
         OwnboardIME.ime.sendKeyUp(code)
         listener.value = 0
@@ -361,8 +343,8 @@ constructor(
     init {
        val paramsLayout = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1f)
         layoutParams = paramsLayout
-        Key.capslock.addListener { 
-            if(!isConstKey){
+        if(!isConstKey){
+            Key.capslock.addListener { 
                 var value = it ?: 0
                 if (value != 0) {
                     text = text.uppercase()
