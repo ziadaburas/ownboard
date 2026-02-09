@@ -18,7 +18,6 @@ import android.view.Gravity
 import com.ownboard.app.db.*
 import android.view.HapticFeedbackConstants
 
-
 class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedListener {
 
     companion object {
@@ -44,10 +43,10 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
     private lateinit var mapper: UsbGamepadMapper
 
     // ==========================================
-    // متغيرات التحكم بارتفاع الكيبورد (يمكنك تعديل القيم هنا)
+    // متغيرات التحكم بارتفاع الكيبورد
     // ==========================================
-    var keyboardHeightPortraitDp = 340f  // الارتفاع في الوضع العمودي
-    var keyboardHeightLandscapeDp = 300f // الارتفاع في الوضع الأفقي (عادة يكون أقل)
+    var keyboardHeightPortraitDp = 340f  
+    var keyboardHeightLandscapeDp = 300f 
     var bottomPaddingDp = 15f
 
     init {
@@ -100,7 +99,6 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
 
         keyboardContainer = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            // استخدام دالة تحديد الارتفاع
             val height = dpToPx(getCurrentKeyboardHeight())
             val params = FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, height)
             params.gravity = Gravity.BOTTOM
@@ -130,29 +128,22 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
         return rootView
     }
 
-    // ============================================================
-    // إضافة هامة: تحديث الارتفاع عند تدوير الشاشة
-    // ============================================================
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
         
         if (::keyboardContainer.isInitialized) {
-            // حساب الارتفاع الجديد
             val newHeight = dpToPx(getCurrentKeyboardHeight())
             
-            // تحديث حاوية الكيبورد
             val params = keyboardContainer.layoutParams
             params.height = newHeight
             keyboardContainer.layoutParams = params
 
-            // تحديث الحافظة إذا كانت مفتوحة
             if (clipboardView.visibility == View.VISIBLE) {
                  val clipParams = clipboardView.layoutParams
                  clipParams.height = newHeight
                  clipboardView.layoutParams = clipParams
             }
             
-            // إعادة بناء الكيبورد لضبط الأوزان (Weights) إذا لزم الأمر
             loadKeyboardFromDB(currentLang)
         }
     }
@@ -182,7 +173,6 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
             clipboardView.visibility = View.GONE
             keyboardContainer.visibility = View.VISIBLE
         } else {
-            // التأكد من استخدام الارتفاع الصحيح عند الفتح
             val currentHeight = dpToPx(getCurrentKeyboardHeight())
             val params = clipboardView.layoutParams
             params.height = currentHeight
@@ -203,11 +193,13 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
         }
     }
 
+    // ============================================================
+    // الدالة المحدثة لبناء الكيبورد وفق الهيكلة الجديدة
+    // ============================================================
     private fun buildKeyboard(jsonString: String) {
         try {
             keyboardContainer.removeAllViews()
             
-            // التأكد من أن الحاوية تأخذ الارتفاع الصحيح قبل البناء
             val totalHeightPx = dpToPx(getCurrentKeyboardHeight())
             val containerParams = keyboardContainer.layoutParams
             containerParams.height = totalHeightPx
@@ -225,7 +217,6 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
             for (rowKey in keysList) {
                 val rowObj = jsonObject.getJSONObject(rowKey)
                 
-                // استخدام الوزن من ملف JSON، الافتراضي 1
                 val rowWeight = rowObj.optDouble("height", 1.0).toFloat()
                 val keysArray = rowObj.getJSONArray("keys")
 
@@ -235,8 +226,8 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
                     
                     layoutParams = LinearLayout.LayoutParams(
                         ViewGroup.LayoutParams.MATCH_PARENT,
-                        0, // الارتفاع 0 لأننا نعتمد على الوزن
-                        rowWeight // الوزن النسبي للصف
+                        0, 
+                        rowWeight 
                     )
                 }
 
@@ -244,26 +235,33 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
                     val keyData = keysArray.getJSONObject(i)
                     
                     val keyView = All(this).apply {
+                        // 1. البيانات الأساسية
                         text = keyData.optString("text", "")
                         hint = keyData.optString("hint", "")
                         val weightVal = keyData.optDouble("weight", 1.0).toFloat()
                         
                         layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, weightVal)
 
+                        // 2. تعيين الوظائف (بما في ذلك السحب الجديد)
                         click = keyData.optString("click", "")
                         longPress = keyData.optString("longPress", "")
-                        leftScroll = keyData.optString("leftScroll", "")
-                        rightScroll = keyData.optString("rightScroll", "")
-
-                        textToSend = keyData.optString("textToSend", "")
-                        textToSendLongPress = keyData.optString("textToSendLongPress", "")
-                        textToSendLeftScroll = keyData.optString("textToSendLeftScroll", "")
-                        textToSendRightScroll = keyData.optString("textToSendRightScroll", "")
                         
-                        codeToSendClick = keyData.optInt("codeToSendClick", -1)
-                        codeToSendLongPress = keyData.optInt("codeToSendLongPress", -1)
-                        codeToSendLeftScroll = keyData.optInt("codeToSendLeftScroll", -1)
-                        codeToSendRightScroll = keyData.optInt("codeToSendRightScroll", -1)
+                        // استبدال leftScroll/rightScroll بـ horizontalSwipe/verticalSwipe
+                        horizontalSwipe = keyData.optString("horizontalSwipe", "")
+                        verticalSwipe = keyData.optString("verticalSwipe", "")
+
+                        // 3. بناء خريطة المعلمات (Params Map)
+                        val paramsObj = keyData.optJSONObject("params")
+                        val paramsMap = mutableMapOf<String, Any>()
+                        if (paramsObj != null) {
+                            val iter = paramsObj.keys()
+                            while (iter.hasNext()) {
+                                val key = iter.next()
+                                paramsMap[key] = paramsObj.get(key)
+                            }
+                        }
+                        // إسناد الخريطة إلى الزر (All.kt سيقوم بالباقي)
+                        params = paramsMap
                     }
 
                     rowLayout.addView(keyView)
@@ -271,9 +269,8 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
 
                 keyboardContainer.addView(rowLayout)
             }
-        // ============================================================
-            // كود الشريط السفلي (مع إلغاء الحواف والمسافات)
-            // ============================================================
+
+            // الشريط السفلي (Navigation Bar)
             if (bottomPaddingDp > 0) {
                 val navBar = LinearLayout(this).apply {
                     orientation = LinearLayout.HORIZONTAL
@@ -281,55 +278,43 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
                         ViewGroup.LayoutParams.MATCH_PARENT,
                         dpToPx(bottomPaddingDp)
                     )
-                    gravity = Gravity.TOP // محاذاة العناصر داخل الشريط للأعلى
+                    gravity = Gravity.TOP
                     setBackgroundColor(Color.parseColor("#1A1A1A"))
                 }
 
-                // دالة مساعدة لإنشاء الأزرار بنفس الخصائص
-                // دالة مساعدة لإنشاء الأزرار مع إضافة الاهتزاز
+                // دالة مساعدة داخلية لإنشاء الأزرار
                 fun createNavBarBtn(textStr: String, onClick: () -> Unit): TextView {
                     return TextView(this).apply {
                         text = textStr
                         textSize = bottomPaddingDp
                         setTextColor(Color.LTGRAY)
-                        
                         includeFontPadding = false 
                         setPadding(0, 0, 0, 0)
-                        
                         gravity = Gravity.TOP or Gravity.CENTER_HORIZONTAL
-                        
                         layoutParams = LinearLayout.LayoutParams(
                             dpToPx(50f), 
                             ViewGroup.LayoutParams.MATCH_PARENT
-                        ).apply {
-                            setMargins(0, 0, 0, 0)
-                        }
-                        
+                        )
                         setOnClickListener { 
-                            // هذا السطر يضيف الاهتزاز
                             it.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
                             onClick() 
                         }
                     }
                 }
 
-                // 1. زر اليسار: تغيير الكيبورد
+                // زر تغيير الكيبورد
                 val switchImeBtn = createNavBarBtn("\u2328") {
                     val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as android.view.inputmethod.InputMethodManager
                     imm.showInputMethodPicker()
                 }
 
-                // 2. مساحة فارغة في المنتصف
+                // مسافة فارغة
                 val centerSpace = View(this).apply {
-                    layoutParams = LinearLayout.LayoutParams(
-                        0,
-                        ViewGroup.LayoutParams.MATCH_PARENT,
-                        1f
-                    )
+                    layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1f)
                     setOnTouchListener { _, _ -> true }
                 }
 
-                // 3. زر اليمين: إغلاق الكيبورد
+                // زر الإغلاق
                 val hideKeyboardBtn = createNavBarBtn("\u25BC") {
                     requestHideSelf(0)
                 }
@@ -359,17 +344,17 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
             appLangDb.setAppLanguage(currentAppPackage, currentLang)
         }
         
-
         Key.isSymbols.value = false
         Key.capslock.value = 0 
     }
 
     fun switchSymbols(isSymbols: Boolean) {
+        // يمكنك تنفيذ منطق التبديل هنا إذا لزم الأمر
     }
 
     fun sendKeyPress(text: String) {
         val ic = currentInputConnection ?: return
-        var textToSend = if ((Key.capslock.value ?: 1) != 0) text.uppercase() else text
+        val textToSend = if ((Key.capslock.value ?: 1) != 0) text.uppercase() else text
         
         ic.commitText(textToSend, 1)
 
@@ -424,22 +409,17 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
-        // 1. التعامل مع زر الرجوع
         if (keyCode == KeyEvent.KEYCODE_BACK) {
-            // أ. إذا كانت الحافظة مفتوحة، أغلقها فقط
             if (::clipboardView.isInitialized && clipboardView.visibility == View.VISIBLE) {
-                toggleClipboard() // هذا سيخفي الحافظة ويظهر الكيبورد
-                return true // استهلاك الحدث (لا تغلق التطبيق)
+                toggleClipboard()
+                return true
             }
-            
-            // ب. إذا كان الكيبورد ظاهراً، قم بإخفائه
             if (isInputViewShown) {
-                requestHideSelf(0) // دالة النظام لإغلاق الـ IME
-                return true // استهلاك الحدث
+                requestHideSelf(0)
+                return true
             }
         }
 
-        // 2. التعامل مع Gamepad Mapper (إذا لم يكن زر الرجوع)
         if (::mapper.isInitialized && event != null && mapper.processKey(event)) {
             return true
         }
@@ -448,16 +428,12 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
     }
 
     override fun onKeyUp(keyCode: Int, event: KeyEvent?): Boolean {
-        // التحقق من زر الرجوع في حالة "الرفع" (رفع الاصبع عن الزر)
         if (keyCode == KeyEvent.KEYCODE_BACK) {
-            // إذا كانت الحافظة مفتوحة أو الكيبورد ظاهراً، نستهلك الحدث هنا أيضاً
-            // حتى لا يمر للتطبيق الخلفي
             if ((::clipboardView.isInitialized && clipboardView.visibility == View.VISIBLE) || isInputViewShown) {
                 return true
             }
         }
 
-        // التعامل مع Gamepad Mapper
         if (::mapper.isInitialized && event != null && mapper.processKey(event)) {
             return true
         }

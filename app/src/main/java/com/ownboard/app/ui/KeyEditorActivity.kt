@@ -12,30 +12,32 @@ class KeyEditorActivity : Activity() {
 
     private lateinit var layoutDatabase: LayoutDatabase
     
-    // UI Elements
+    // UI Elements - Basics
     private lateinit var inputText: EditText
     private lateinit var inputHint: EditText
     private lateinit var inputWeight: EditText
     
-    // Spinners
+    // Spinners (Functions)
     private lateinit var spinnerClick: Spinner
     private lateinit var spinnerLongPress: Spinner
-    private lateinit var spinnerSwipeLeft: Spinner
-    private lateinit var spinnerSwipeRight: Spinner
+    private lateinit var spinnerHorizontal: Spinner // New: Horizontal Swipe
+    private lateinit var spinnerVertical: Spinner   // New: Vertical Swipe
 
-    // Params Inputs
+    // Params - Click (Default/General)
     private lateinit var inputTextClick: EditText
     private lateinit var inputCodeClick: EditText
     
+    // Params - Long Press
     private lateinit var inputTextLong: EditText
     private lateinit var inputCodeLong: EditText
     
-    // Swipe Inputs
-    private lateinit var inputTextLeft: EditText
-    private lateinit var inputCodeLeft: EditText 
+    // Params - Horizontal Swipe
+    private lateinit var inputTextHorizontal: EditText
+    private lateinit var inputCodeHorizontal: EditText 
     
-    private lateinit var inputTextRight: EditText
-    private lateinit var inputCodeRight: EditText 
+    // Params - Vertical Swipe
+    private lateinit var inputTextVertical: EditText
+    private lateinit var inputCodeVertical: EditText 
 
     private var langCode = ""
     private var rowKey = ""
@@ -64,38 +66,45 @@ class KeyEditorActivity : Activity() {
     }
 
     private fun initViews() {
+        // Basics
         inputText = findViewById(R.id.input_text)
         inputHint = findViewById(R.id.input_hint)
         inputWeight = findViewById(R.id.input_weight)
         
+        // Click Section
         spinnerClick = findViewById(R.id.spinner_click)
         inputTextClick = findViewById(R.id.input_text_click)
         inputCodeClick = findViewById(R.id.input_code_click)
         
+        // Long Press Section
         spinnerLongPress = findViewById(R.id.spinner_long_press)
         inputTextLong = findViewById(R.id.input_text_long)
         inputCodeLong = findViewById(R.id.input_code_long)
         
-        // === التصحيح هنا: إضافة تعريف حقول الكود للسحب ===
-        spinnerSwipeLeft = findViewById(R.id.spinner_swipe_left)
-        inputTextLeft = findViewById(R.id.input_text_left)
-        inputCodeLeft = findViewById(R.id.input_code_left) // هذا السطر كان ناقصاً
+        // Horizontal Swipe Section (New)
+        spinnerHorizontal = findViewById(R.id.spinner_horizontal)
+        inputTextHorizontal = findViewById(R.id.input_text_horizontal)
+        inputCodeHorizontal = findViewById(R.id.input_code_horizontal)
         
-        spinnerSwipeRight = findViewById(R.id.spinner_swipe_right)
-        inputTextRight = findViewById(R.id.input_text_right)
-        inputCodeRight = findViewById(R.id.input_code_right) // وهذا السطر كان ناقصاً
+        // Vertical Swipe Section (New)
+        spinnerVertical = findViewById(R.id.spinner_vertical)
+        inputTextVertical = findViewById(R.id.input_text_vertical)
+        inputCodeVertical = findViewById(R.id.input_code_vertical)
     }
 
     private fun setupSpinners() {
+        // Click Functions
         val clickAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, All.CLICK_FUNCTIONS)
         spinnerClick.adapter = clickAdapter
 
+        // Long Press Functions
         val longAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, All.LONG_PRESS_FUNCTIONS)
         spinnerLongPress.adapter = longAdapter
 
-        val scrollAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, All.SCROLL_FUNCTIONS)
-        spinnerSwipeLeft.adapter = scrollAdapter
-        spinnerSwipeRight.adapter = scrollAdapter
+        // Swipe Functions (Used for both Horizontal and Vertical)
+        val swipeAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, All.SWIPE_FUNCTIONS)
+        spinnerHorizontal.adapter = swipeAdapter
+        spinnerVertical.adapter = swipeAdapter
     }
 
     private fun loadKeyData() {
@@ -106,30 +115,42 @@ class KeyEditorActivity : Activity() {
             val keysArray = rowObj.getJSONArray("keys")
             keyObj = keysArray.getJSONObject(keyIndex)
 
+            // 1. Basic Info
             inputText.setText(keyObj!!.optString("text", ""))
             inputHint.setText(keyObj!!.optString("hint", ""))
             inputWeight.setText(keyObj!!.optDouble("weight", 1.0).toString())
 
+            // 2. Function Selectors
             setSpinnerSelection(spinnerClick, All.CLICK_FUNCTIONS, keyObj!!.optString("click", ""))
             setSpinnerSelection(spinnerLongPress, All.LONG_PRESS_FUNCTIONS, keyObj!!.optString("longPress", ""))
-            setSpinnerSelection(spinnerSwipeLeft, All.SCROLL_FUNCTIONS, keyObj!!.optString("leftScroll", ""))
-            setSpinnerSelection(spinnerSwipeRight, All.SCROLL_FUNCTIONS, keyObj!!.optString("rightScroll", ""))
+            setSpinnerSelection(spinnerHorizontal, All.SWIPE_FUNCTIONS, keyObj!!.optString("horizontalSwipe", ""))
+            setSpinnerSelection(spinnerVertical, All.SWIPE_FUNCTIONS, keyObj!!.optString("verticalSwipe", ""))
 
-            inputTextClick.setText(keyObj!!.optString("textToSend", ""))
-            inputCodeClick.setText(keyObj!!.optInt("codeToSendClick", 0).takeIf { it != 0 }?.toString() ?: "")
-            
-            inputTextLong.setText(keyObj!!.optString("textToSendLongPress", ""))
-            inputCodeLong.setText(keyObj!!.optInt("codeToSendLongPress", 0).takeIf { it != 0 }?.toString() ?: "")
-            
-            // تعبئة حقول السحب
-            inputTextLeft.setText(keyObj!!.optString("textToSendLeftScroll", ""))
-            inputCodeLeft.setText(keyObj!!.optInt("codeToSendLeftScroll", 0).takeIf { it != 0 }?.toString() ?: "")
+            // 3. Parsing the 'params' Map
+            val params = keyObj!!.optJSONObject("params") ?: JSONObject()
 
-            inputTextRight.setText(keyObj!!.optString("textToSendRightScroll", ""))
-            inputCodeRight.setText(keyObj!!.optInt("codeToSendRightScroll", 0).takeIf { it != 0 }?.toString() ?: "")
+            // Click Params (text, code)
+            inputTextClick.setText(params.optString("text", ""))
+            val code = params.optInt("code", 0)
+            inputCodeClick.setText(if (code != 0) code.toString() else "")
+            
+            // Long Press Params (lpText, lpCode)
+            inputTextLong.setText(params.optString("lpText", ""))
+            val lpCode = params.optInt("lpCode", 0)
+            inputCodeLong.setText(if (lpCode != 0) lpCode.toString() else "")
+            
+            // Horizontal Params (hText, hCode)
+            inputTextHorizontal.setText(params.optString("hText", ""))
+            val hCode = params.optInt("hCode", 0)
+            inputCodeHorizontal.setText(if (hCode != 0) hCode.toString() else "")
+
+            // Vertical Params (vText, vCode)
+            inputTextVertical.setText(params.optString("vText", ""))
+            val vCode = params.optInt("vCode", 0)
+            inputCodeVertical.setText(if (vCode != 0) vCode.toString() else "")
 
         } catch (e: Exception) {
-            Toast.makeText(this, "خطأ: ${e.message}", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "خطأ في تحميل البيانات: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -142,28 +163,48 @@ class KeyEditorActivity : Activity() {
 
     private fun saveKeyData() {
         try {
+            // 1. Save Basic Info
             keyObj!!.put("text", inputText.text.toString())
             keyObj!!.put("hint", inputHint.text.toString())
             keyObj!!.put("weight", inputWeight.text.toString().toDoubleOrNull() ?: 1.0)
 
+            // 2. Save Function Selectors
             keyObj!!.put("click", spinnerClick.selectedItem.toString())
             keyObj!!.put("longPress", spinnerLongPress.selectedItem.toString())
-            keyObj!!.put("leftScroll", spinnerSwipeLeft.selectedItem.toString())
-            keyObj!!.put("rightScroll", spinnerSwipeRight.selectedItem.toString())
+            keyObj!!.put("horizontalSwipe", spinnerHorizontal.selectedItem.toString())
+            keyObj!!.put("verticalSwipe", spinnerVertical.selectedItem.toString())
 
-            keyObj!!.put("textToSend", inputTextClick.text.toString())
-            keyObj!!.put("codeToSendClick", inputCodeClick.text.toString().toIntOrNull() ?: 0)
+            // 3. Construct and Save 'params' Map
+            val params = JSONObject()
+
+            // Helper to add if not empty/zero
+            fun addToParams(key: String, value: String) {
+                if (value.isNotEmpty()) params.put(key, value)
+            }
+            fun addToParams(key: String, value: Int) {
+                if (value != 0) params.put(key, value)
+            }
+
+            // Click Params
+            addToParams("text", inputTextClick.text.toString())
+            addToParams("code", inputCodeClick.text.toString().toIntOrNull() ?: 0)
             
-            keyObj!!.put("textToSendLongPress", inputTextLong.text.toString())
-            keyObj!!.put("codeToSendLongPress", inputCodeLong.text.toString().toIntOrNull() ?: 0)
+            // Long Press Params
+            addToParams("lpText", inputTextLong.text.toString())
+            addToParams("lpCode", inputCodeLong.text.toString().toIntOrNull() ?: 0)
             
-            // حفظ حقول السحب
-            keyObj!!.put("textToSendLeftScroll", inputTextLeft.text.toString())
-            keyObj!!.put("codeToSendLeftScroll", inputCodeLeft.text.toString().toIntOrNull() ?: 0)
+            // Horizontal Params
+            addToParams("hText", inputTextHorizontal.text.toString())
+            addToParams("hCode", inputCodeHorizontal.text.toString().toIntOrNull() ?: 0)
 
-            keyObj!!.put("textToSendRightScroll", inputTextRight.text.toString())
-            keyObj!!.put("codeToSendRightScroll", inputCodeRight.text.toString().toIntOrNull() ?: 0)
+            // Vertical Params
+            addToParams("vText", inputTextVertical.text.toString())
+            addToParams("vCode", inputCodeVertical.text.toString().toIntOrNull() ?: 0)
 
+            // Save params object to key object
+            keyObj!!.put("params", params)
+
+            // 4. Update Database
             val rowObj = fullJsonObj!!.getJSONObject(rowKey)
             val keysArray = rowObj.getJSONArray("keys")
             keysArray.put(keyIndex, keyObj)

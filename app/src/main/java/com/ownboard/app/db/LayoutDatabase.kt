@@ -9,102 +9,103 @@ class LayoutDatabase(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
 
     companion object {
         private const val DATABASE_NAME = "keyboard_layouts.db"
-        private const val DATABASE_VERSION = 2
+        // قمنا بتحديث الإصدار لإجبار التطبيق على إعادة إنشاء الجدول بالهيكلة الجديدة للـ JSON
+        private const val DATABASE_VERSION = 3
         private const val TABLE_NAME = "layouts"
         private const val COL_LANG = "lang"
         private const val COL_JSON = "json_data"
 
         // ==========================================
-        // البيانات الافتراضية (تم دمج الـ JSON الكامل هنا)
+        // البيانات الافتراضية المحسنة (New Structure)
+        // تم دمج المعلمات داخل كائن "params"
+        // تم استبدال left/right بـ horizontalSwipe و verticalSwipe
         // ==========================================
-
-        // داخل LayoutDatabase.kt
 
         private const val DEFAULT_AR_JSON = """
     {
       "row1": {
         "height": 45.0,
         "keys": [
-          { "weight": 1.0, "text": "←", "click": "sendCode", "longPress": "loop", "codeToSendClick": 21 },
-          { "weight": 1.0, "text": "↑", "hint": "Home", "click": "sendCode", "longPress": "sendCode", "codeToSendClick": 19, "codeToSendLongPress": 122 },
-          { "weight": 1.0, "text": "⇥", "click": "sendCode", "codeToSendClick": 61 },
-          { "weight": 1.0, "text": "Ctrl", "click": "sendSpecial", "codeToSendClick": 113 }, 
-          { "weight": 1.0, "text": "Alt", "click": "sendSpecial", "codeToSendClick": 57 },
-          { "weight": 1.0, "text": "Shift", "click": "sendSpecial", "codeToSendClick": 59 },
-          { "weight": 1.0, "text": "↓", "hint": "End", "click": "sendCode", "longPress": "sendCode", "codeToSendClick": 20, "codeToSendLongPress": 123 },
-          { "weight": 1.0, "text": "→", "click": "sendCode", "longPress": "loop", "codeToSendClick": 22 }
+          { "weight": 1.0, "text": "←", "click": "sendCode", "longPress": "loop", "params": { "code": 21 } },
+          { "weight": 1.0, "text": "↑", "hint": "Home", "click": "sendCode", "longPress": "sendCode", "verticalSwipe": "sendCode", "params": { "code": 19, "lpCode": 122, "vCode": 122 } },
+          { "weight": 1.0, "text": "⇥", "click": "sendCode", "params": { "code": 61 } },
+          { "weight": 1.0, "text": "Ctrl", "click": "sendSpecial", "params": { "code": 113 } }, 
+          { "weight": 1.0, "text": "Alt", "click": "sendSpecial", "params": { "code": 57 } },
+          { "weight": 1.0, "text": "Shift", "click": "sendSpecial", "params": { "code": 59 } },
+          { "weight": 1.0, "text": "↓", "hint": "End", "click": "sendCode", "longPress": "sendCode", "verticalSwipe": "sendCode", "params": { "code": 20, "lpCode": 123, "vCode": 123 } },
+          { "weight": 1.0, "text": "→", "click": "sendCode", "longPress": "loop", "params": { "code": 22 } }
         ]
       },
       "row2": {
         "height": 55.0,
         "keys": [
-          { "weight": 1.0, "text": "1", "hint": "j k", "click": "sendText", "longPress": "showPopup", "textToSend": "1" },
-          { "weight": 1.0, "text": "2", "hint": "\"", "click": "sendText", "longPress": "showPopup", "textToSend": "2" },
-          { "weight": 1.0, "text": "3", "hint": "·", "click": "sendText", "longPress": "showPopup", "textToSend": "3" },
-          { "weight": 1.0, "text": "4", "hint": ":", "click": "sendText", "longPress": "showPopup", "textToSend": "4" },
-          { "weight": 1.0, "text": "5", "hint": "؟", "click": "sendText", "longPress": "showPopup", "textToSend": "5" },
-          { "weight": 1.0, "text": "6", "hint": "؛ j k", "click": "sendText", "longPress": "showPopup", "textToSend": "6", "leftScroll": "switchLang", "rightScroll": "switchLang" },
-          { "weight": 1.0, "text": "7", "hint": "-", "click": "sendText", "longPress": "showPopup", "textToSend": "7", "leftScroll": "sendText", "textToSendLeftScroll": "cc" },
-          { "weight": 1.0, "text": "8", "hint": "_", "click": "sendText", "longPress": "showPopup", "textToSend": "8" },
-          { "weight": 1.0, "text": "9", "hint": "(", "click": "sendText", "longPress": "showPopup", "textToSend": "9" },
-          { "weight": 1.0, "text": "0", "hint": ")", "click": "sendText", "longPress": "showPopup", "textToSend": "0" }
+          { "weight": 1.0, "text": "1", "hint": "j k", "click": "sendText", "longPress": "showPopup", "verticalSwipe": "sendText", "params": { "text": "1", "vText": "!" } },
+          { "weight": 1.0, "text": "2", "hint": "\"", "click": "sendText", "longPress": "showPopup", "params": { "text": "2" } },
+          { "weight": 1.0, "text": "3", "hint": "·", "click": "sendText", "longPress": "showPopup", "params": { "text": "3" } },
+          { "weight": 1.0, "text": "4", "hint": ":", "click": "sendText", "longPress": "showPopup", "params": { "text": "4" } },
+          { "weight": 1.0, "text": "5", "hint": "؟", "click": "sendText", "longPress": "showPopup", "params": { "text": "5" } },
+          { "weight": 1.0, "text": "6", "hint": "؛ j k", "click": "sendText", "longPress": "showPopup", "horizontalSwipe": "switchLang", "params": { "text": "6" } },
+          { "weight": 1.0, "text": "7", "hint": "-", "click": "sendText", "longPress": "showPopup", "horizontalSwipe": "sendText", "params": { "text": "7", "hText": "cc" } },
+          { "weight": 1.0, "text": "8", "hint": "_", "click": "sendText", "longPress": "showPopup", "params": { "text": "8" } },
+          { "weight": 1.0, "text": "9", "hint": "(", "click": "sendText", "longPress": "showPopup", "params": { "text": "9" } },
+          { "weight": 1.0, "text": "0", "hint": ")", "click": "sendText", "longPress": "showPopup", "params": { "text": "0" } }
         ]
       },
       "row3": {
         "height": 55.0,
         "keys": [
-          { "weight": 1.0, "text": "ض", "hint": "!", "click": "sendText", "longPress": "showPopup", "textToSend": "ض" },
-          { "weight": 1.0, "text": "ص", "hint": "!", "click": "sendText", "longPress": "loop", "textToSend": "ص" },
-          { "weight": 1.0, "text": "ق", "hint": "!", "click": "sendText", "longPress": "showPopup", "textToSend": "ق" },
-          { "weight": 1.0, "text": "ف", "hint": "!", "click": "sendText", "longPress": "showPopup", "textToSend": "ف" },
-          { "weight": 1.0, "text": "غ", "hint": "!", "click": "sendText", "longPress": "showPopup", "textToSend": "غ" },
-          { "weight": 1.0, "text": "ع", "hint": "!", "click": "sendText", "longPress": "showPopup", "textToSend": "ع" },
-          { "weight": 1.0, "text": "ه", "hint": "!", "click": "sendText", "longPress": "showPopup", "textToSend": "ه" },
-          { "weight": 1.0, "text": "خ", "hint": "!", "click": "sendText", "longPress": "showPopup", "textToSend": "خ" },
-          { "weight": 1.0, "text": "ح", "hint": "!", "click": "sendText", "longPress": "showPopup", "textToSend": "ح" },
-          { "weight": 1.0, "text": "ج", "hint": "!", "click": "sendText", "longPress": "showPopup", "textToSend": "ج" }
+          { "weight": 1.0, "text": "ض", "hint": "!", "click": "sendText", "longPress": "showPopup", "params": { "text": "ض" } },
+          { "weight": 1.0, "text": "ص", "hint": "!", "click": "sendText", "longPress": "loop", "params": { "text": "ص" } },
+          { "weight": 1.0, "text": "ق", "hint": "!", "click": "sendText", "longPress": "showPopup", "params": { "text": "ق" } },
+          { "weight": 1.0, "text": "ف", "hint": "!", "click": "sendText", "longPress": "showPopup", "params": { "text": "ف" } },
+          { "weight": 1.0, "text": "غ", "hint": "!", "click": "sendText", "longPress": "showPopup", "params": { "text": "غ" } },
+          { "weight": 1.0, "text": "ع", "hint": "!", "click": "sendText", "longPress": "showPopup", "params": { "text": "ع" } },
+          { "weight": 1.0, "text": "ه", "hint": "!", "click": "sendText", "longPress": "showPopup", "params": { "text": "ه" } },
+          { "weight": 1.0, "text": "خ", "hint": "!", "click": "sendText", "longPress": "showPopup", "params": { "text": "خ" } },
+          { "weight": 1.0, "text": "ح", "hint": "!", "click": "sendText", "longPress": "showPopup", "params": { "text": "ح" } },
+          { "weight": 1.0, "text": "ج", "hint": "!", "click": "sendText", "longPress": "showPopup", "params": { "text": "ج" } }
         ]
       },
       "row4": {
         "height": 55.0,
         "keys": [
-          { "weight": 1.0, "text": "ش", "hint": "!", "click": "sendText", "longPress": "showPopup", "textToSend": "ش" },
-          { "weight": 1.0, "text": "س", "hint": "!", "click": "sendText", "longPress": "showPopup", "textToSend": "س" },
-          { "weight": 1.0, "text": "ي", "hint": "ى ئ", "click": "sendText", "longPress": "showPopup", "textToSend": "ي" },
-          { "weight": 1.0, "text": "ب", "hint": "!", "click": "sendText", "longPress": "showPopup", "textToSend": "ب" },
-          { "weight": 1.0, "text": "ل", "hint": "!", "click": "sendText", "longPress": "showPopup", "textToSend": "ل" },
-          { "weight": 1.0, "text": "ا", "hint": "ء أ إ آ", "click": "sendText", "longPress": "showPopup", "textToSend": "ا" },
-          { "weight": 1.0, "text": "ت", "hint": "ـ", "click": "sendText", "longPress": "showPopup", "textToSend": "ت" },
-          { "weight": 1.0, "text": "ن", "hint": "!", "click": "sendText", "longPress": "showPopup", "textToSend": "ن" },
-          { "weight": 1.0, "text": "م", "hint": "!", "click": "sendText", "longPress": "showPopup", "textToSend": "م" },
-          { "weight": 1.0, "text": "ك", "hint": "؛", "click": "sendText", "longPress": "showPopup", "textToSend": "ك" }
+          { "weight": 1.0, "text": "ش", "hint": "!", "click": "sendText", "longPress": "showPopup", "params": { "text": "ش" } },
+          { "weight": 1.0, "text": "س", "hint": "!", "click": "sendText", "longPress": "showPopup", "params": { "text": "س" } },
+          { "weight": 1.0, "text": "ي", "hint": "ى ئ", "click": "sendText", "longPress": "showPopup", "params": { "text": "ي" } },
+          { "weight": 1.0, "text": "ب", "hint": "!", "click": "sendText", "longPress": "showPopup", "params": { "text": "ب" } },
+          { "weight": 1.0, "text": "ل", "hint": "!", "click": "sendText", "longPress": "showPopup", "params": { "text": "ل" } },
+          { "weight": 1.0, "text": "ا", "hint": "ء أ إ آ", "click": "sendText", "longPress": "showPopup", "params": { "text": "ا" } },
+          { "weight": 1.0, "text": "ت", "hint": "ـ", "click": "sendText", "longPress": "showPopup", "params": { "text": "ت" } },
+          { "weight": 1.0, "text": "ن", "hint": "!", "click": "sendText", "longPress": "showPopup", "params": { "text": "ن" } },
+          { "weight": 1.0, "text": "م", "hint": "!", "click": "sendText", "longPress": "showPopup", "params": { "text": "م" } },
+          { "weight": 1.0, "text": "ك", "hint": "؛", "click": "sendText", "longPress": "showPopup", "params": { "text": "ك" } }
         ]
       },
       "row5": {
         "height": 55.0,
         "keys": [
-          { "weight": 1.0, "text": "ظ", "hint": "َ ِ ُ ً ٍ ٌ ّ ْ", "click": "sendText", "longPress": "showPopup", "textToSend": "ظ" },
-          { "weight": 1.0, "text": "ط", "hint": "!", "click": "sendText", "longPress": "showPopup", "textToSend": "ط" },
-          { "weight": 1.0, "text": "ذ", "hint": "!", "click": "sendText", "longPress": "showPopup", "textToSend": "ذ" },
-          { "weight": 1.0, "text": "د", "hint": "!", "click": "sendText", "longPress": "showPopup", "textToSend": "د" },
-          { "weight": 1.0, "text": "ز", "hint": "!", "click": "sendText", "longPress": "showPopup", "textToSend": "ز" },
-          { "weight": 1.0, "text": "ر", "hint": "!", "click": "sendText", "longPress": "showPopup", "textToSend": "ر" },
-          { "weight": 1.0, "text": "و", "hint": "ؤ", "click": "sendText", "longPress": "showPopup", "textToSend": "و" },
-          { "weight": 1.0, "text": "ة", "hint": "!", "click": "sendText", "longPress": "showPopup", "textToSend": "ة" },
-          { "weight": 1.0, "text": "ث", "hint": "!", "click": "sendText", "longPress": "showPopup", "textToSend": "ث" },
-          { "weight": 1.5, "text": "⌫", "click": "delete", "longPress": "loop" }
+          { "weight": 1.0, "text": "ظ", "hint": "َ ِ ُ ً ٍ ٌ ّ ْ", "click": "sendText", "longPress": "showPopup", "params": { "text": "ظ" } },
+          { "weight": 1.0, "text": "ط", "hint": "!", "click": "sendText", "longPress": "showPopup", "params": { "text": "ط" } },
+          { "weight": 1.0, "text": "ذ", "hint": "!", "click": "sendText", "longPress": "showPopup", "params": { "text": "ذ" } },
+          { "weight": 1.0, "text": "د", "hint": "!", "click": "sendText", "longPress": "showPopup", "params": { "text": "د" } },
+          { "weight": 1.0, "text": "ز", "hint": "!", "click": "sendText", "longPress": "showPopup", "params": { "text": "ز" } },
+          { "weight": 1.0, "text": "ر", "hint": "!", "click": "sendText", "longPress": "showPopup", "params": { "text": "ر" } },
+          { "weight": 1.0, "text": "و", "hint": "ؤ", "click": "sendText", "longPress": "showPopup", "params": { "text": "و" } },
+          { "weight": 1.0, "text": "ة", "hint": "!", "click": "sendText", "longPress": "showPopup", "params": { "text": "ة" } },
+          { "weight": 1.0, "text": "ث", "hint": "!", "click": "sendText", "longPress": "showPopup", "params": { "text": "ث" } },
+          { "weight": 1.5, "text": "⌫", "click": "delete", "longPress": "loop", "horizontalSwipe": "delete", "params": {} }
         ]
       },
       "row6": {
         "height": 60.0,
         "keys": [
-          { "weight": 1.5, "text": "123", "click": "switchSymbols" },
-          { "weight": 1.0, "text": "😁", "click": "openEmoji" },
-          { "weight": 1.0, "text": "،", "click": "sendText", "textToSend": "،" },
-          { "weight": 3.0, "text": "العربية", "hint": "English", "click": "sendText", "textToSend": " ", "leftScroll": "switchLang", "rightScroll": "switchLang" },
-          { "weight": 1.0, "text": ".", "click": "sendText", "textToSend": "." },
-          { "weight": 1.0, "text": "📋", "click": "openClipboard" },
-          { "weight": 1.5, "text": "⏎", "click": "sendCode", "codeToSendClick": 66 }
+          { "weight": 1.5, "text": "123", "click": "switchSymbols", "params": {} },
+          { "weight": 1.0, "text": "😁", "click": "openEmoji", "params": {} },
+          { "weight": 1.0, "text": "،", "click": "sendText", "params": { "text": "،" } },
+          { "weight": 3.0, "text": "العربية", "hint": "English", "click": "sendText", "horizontalSwipe": "switchLang", "params": { "text": " " } },
+          { "weight": 1.0, "text": ".", "click": "sendText", "params": { "text": "." } },
+          { "weight": 1.0, "text": "📋", "click": "openClipboard", "params": {} },
+          { "weight": 1.5, "text": "⏎", "click": "sendCode", "params": { "code": 66 } }
         ]
       }
     }
@@ -115,84 +116,84 @@ class LayoutDatabase(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
   "row1": {
     "height": 45.0,
     "keys": [
-      { "weight": 1.0, "text": "←", "click": "sendCode", "longPress": "loop", "codeToSendClick": 21 },
-      { "weight": 1.0, "text": "↑", "hint": "Home", "click": "sendCode", "longPress": "sendCode", "codeToSendClick": 19, "codeToSendLongPress": 122 },
-      { "weight": 1.0, "text": "⇥", "click": "sendCode", "codeToSendClick": 61 },
-      { "weight": 1.0, "text": "Ctrl", "click": "sendSpecial", "codeToSendClick": 113 },
-      { "weight": 1.0, "text": "Alt", "click": "sendSpecial", "codeToSendClick": 57 },
-      { "weight": 1.0, "text": "Shift", "click": "sendSpecial", "codeToSendClick": 59 },
-      { "weight": 1.0, "text": "↓", "hint": "End", "click": "sendCode", "longPress": "sendCode", "codeToSendClick": 20, "codeToSendLongPress": 123 },
-      { "weight": 1.0, "text": "→", "click": "sendCode", "longPress": "loop", "codeToSendClick": 22 }
+      { "weight": 1.0, "text": "←", "click": "sendCode", "longPress": "loop", "params": { "code": 21 } },
+      { "weight": 1.0, "text": "↑", "hint": "Home", "click": "sendCode", "longPress": "sendCode", "verticalSwipe": "sendCode", "params": { "code": 19, "lpCode": 122, "vCode": 122 } },
+      { "weight": 1.0, "text": "⇥", "click": "sendCode", "params": { "code": 61 } },
+      { "weight": 1.0, "text": "Ctrl", "click": "sendSpecial", "params": { "code": 113 } },
+      { "weight": 1.0, "text": "Alt", "click": "sendSpecial", "params": { "code": 57 } },
+      { "weight": 1.0, "text": "Shift", "click": "sendSpecial", "params": { "code": 59 } },
+      { "weight": 1.0, "text": "↓", "hint": "End", "click": "sendCode", "longPress": "sendCode", "verticalSwipe": "sendCode", "params": { "code": 20, "lpCode": 123, "vCode": 123 } },
+      { "weight": 1.0, "text": "→", "click": "sendCode", "longPress": "loop", "params": { "code": 22 } }
     ]
   },
   "row2": {
     "height": 55.0,
     "keys": [
-      { "weight": 1.0, "text": "1", "hint": "!", "click": "sendText", "longPress": "showPopup", "textToSend": "1" },
-      { "weight": 1.0, "text": "2", "hint": "@", "click": "sendText", "longPress": "showPopup", "textToSend": "2" },
-      { "weight": 1.0, "text": "3", "hint": "#", "click": "sendText", "longPress": "showPopup", "textToSend": "3" },
-      { "weight": 1.0, "text": "4", "hint": "$", "click": "sendText", "longPress": "showPopup", "textToSend": "4" },
-      { "weight": 1.0, "text": "5", "hint": "%", "click": "sendText", "longPress": "showPopup", "textToSend": "5" },
-      { "weight": 1.0, "text": "6", "hint": "^", "click": "sendText", "longPress": "showPopup", "textToSend": "6" },
-      { "weight": 1.0, "text": "7", "hint": "&", "click": "sendText", "longPress": "showPopup", "textToSend": "7" },
-      { "weight": 1.0, "text": "8", "hint": "*", "click": "sendText", "longPress": "showPopup", "textToSend": "8" },
-      { "weight": 1.0, "text": "9", "hint": "(", "click": "sendText", "longPress": "showPopup", "textToSend": "9" },
-      { "weight": 1.0, "text": "0", "hint": ")", "click": "sendText", "longPress": "showPopup", "textToSend": "0" }
+      { "weight": 1.0, "text": "1", "hint": "!", "click": "sendText", "longPress": "showPopup", "params": { "text": "1" } },
+      { "weight": 1.0, "text": "2", "hint": "@", "click": "sendText", "longPress": "showPopup", "params": { "text": "2" } },
+      { "weight": 1.0, "text": "3", "hint": "#", "click": "sendText", "longPress": "showPopup", "params": { "text": "3" } },
+      { "weight": 1.0, "text": "4", "hint": "$", "click": "sendText", "longPress": "showPopup", "params": { "text": "4" } },
+      { "weight": 1.0, "text": "5", "hint": "%", "click": "sendText", "longPress": "showPopup", "params": { "text": "5" } },
+      { "weight": 1.0, "text": "6", "hint": "^", "click": "sendText", "longPress": "showPopup", "params": { "text": "6" } },
+      { "weight": 1.0, "text": "7", "hint": "&", "click": "sendText", "longPress": "showPopup", "params": { "text": "7" } },
+      { "weight": 1.0, "text": "8", "hint": "*", "click": "sendText", "longPress": "showPopup", "params": { "text": "8" } },
+      { "weight": 1.0, "text": "9", "hint": "(", "click": "sendText", "longPress": "showPopup", "params": { "text": "9" } },
+      { "weight": 1.0, "text": "0", "hint": ")", "click": "sendText", "longPress": "showPopup", "params": { "text": "0" } }
     ]
   },
   "row3": {
     "height": 55.0,
     "keys": [
-      { "weight": 1.0, "text": "q", "hint": "( ) ()", "click": "sendText", "longPress": "showPopup", "textToSend": "q" },
-      { "weight": 1.0, "text": "w", "hint": "{ } {}", "click": "sendText", "longPress": "showPopup", "textToSend": "w" },
-      { "weight": 1.0, "text": "e", "hint": "[ ] []", "click": "sendText", "longPress": "showPopup", "textToSend": "e" },
-      { "weight": 1.0, "text": "r", "hint": "& &&", "click": "sendText", "longPress": "showPopup", "textToSend": "r" },
-      { "weight": 1.0, "text": "t", "hint": "| ||", "click": "sendText", "longPress": "showPopup", "textToSend": "t" },
-      { "weight": 1.0, "text": "y", "hint": "= == =>", "click": "sendText", "longPress": "showPopup", "textToSend": "y" },
-      { "weight": 1.0, "text": "u", "hint": "+ ++ +=", "click": "sendText", "longPress": "showPopup", "textToSend": "u", "leftScroll": "sendText", "rightScroll": "sendText", "textToSendLeftScroll": "++", "textToSendRightScroll": "+=" },
-      { "weight": 1.0, "text": "i", "hint": "- ->", "click": "sendText", "longPress": "showPopup", "textToSend": "i" },
-      { "weight": 1.0, "text": "o", "hint": "$", "click": "sendText", "longPress": "showPopup", "textToSend": "o" },
-      { "weight": 1.0, "text": "p", "hint": "#", "click": "sendText", "longPress": "showPopup", "textToSend": "p" }
+      { "weight": 1.0, "text": "q", "hint": "( ) ()", "click": "sendText", "longPress": "showPopup", "params": { "text": "q" } },
+      { "weight": 1.0, "text": "w", "hint": "{ } {}", "click": "sendText", "longPress": "showPopup", "params": { "text": "w" } },
+      { "weight": 1.0, "text": "e", "hint": "[ ] []", "click": "sendText", "longPress": "showPopup", "params": { "text": "e" } },
+      { "weight": 1.0, "text": "r", "hint": "& &&", "click": "sendText", "longPress": "showPopup", "params": { "text": "r" } },
+      { "weight": 1.0, "text": "t", "hint": "| ||", "click": "sendText", "longPress": "showPopup", "params": { "text": "t" } },
+      { "weight": 1.0, "text": "y", "hint": "= == =>", "click": "sendText", "longPress": "showPopup", "params": { "text": "y" } },
+      { "weight": 1.0, "text": "u", "hint": "+ ++ +=", "click": "sendText", "longPress": "showPopup", "horizontalSwipe": "sendText", "params": { "text": "u", "hText": "++" } },
+      { "weight": 1.0, "text": "i", "hint": "- ->", "click": "sendText", "longPress": "showPopup", "params": { "text": "i" } },
+      { "weight": 1.0, "text": "o", "hint": "$", "click": "sendText", "longPress": "showPopup", "params": { "text": "o" } },
+      { "weight": 1.0, "text": "p", "hint": "#", "click": "sendText", "longPress": "showPopup", "params": { "text": "p" } }
     ]
   },
   "row4": {
     "height": 55.0,
     "keys": [
-      { "weight": 1.0, "text": "a", "hint": "@ • @gmail.com", "click": "sendText", "longPress": "showPopup", "textToSend": "a" },
-      { "weight": 1.0, "text": "s", "hint": "! !=", "click": "sendText", "longPress": "showPopup", "textToSend": "s" },
-      { "weight": 1.0, "text": "d", "hint": "~", "click": "sendText", "longPress": "showPopup", "textToSend": "d" },
-      { "weight": 1.0, "text": "f", "hint": "?", "click": "sendText", "longPress": "showPopup", "textToSend": "f" },
-      { "weight": 1.0, "text": "g", "hint": "* **", "click": "sendText", "longPress": "showPopup", "textToSend": "g" },
-      { "weight": 1.0, "text": "h", "hint": "%", "click": "sendText", "longPress": "showPopup", "textToSend": "h" },
-      { "weight": 1.0, "text": "j", "hint": "_ __", "click": "sendText", "longPress": "showPopup", "textToSend": "j" },
-      { "weight": 1.0, "text": "k", "hint": ":", "click": "sendText", "longPress": "showPopup", "textToSend": "k" },
-      { "weight": 1.0, "text": "l", "hint": ";", "click": "sendText", "longPress": "showPopup", "textToSend": "l" }
+      { "weight": 1.0, "text": "a", "hint": "@ • @gmail.com", "click": "sendText", "longPress": "showPopup", "params": { "text": "a" } },
+      { "weight": 1.0, "text": "s", "hint": "! !=", "click": "sendText", "longPress": "showPopup", "params": { "text": "s" } },
+      { "weight": 1.0, "text": "d", "hint": "~", "click": "sendText", "longPress": "showPopup", "params": { "text": "d" } },
+      { "weight": 1.0, "text": "f", "hint": "?", "click": "sendText", "longPress": "showPopup", "params": { "text": "f" } },
+      { "weight": 1.0, "text": "g", "hint": "* **", "click": "sendText", "longPress": "showPopup", "params": { "text": "g" } },
+      { "weight": 1.0, "text": "h", "hint": "%", "click": "sendText", "longPress": "showPopup", "params": { "text": "h" } },
+      { "weight": 1.0, "text": "j", "hint": "_ __", "click": "sendText", "longPress": "showPopup", "params": { "text": "j" } },
+      { "weight": 1.0, "text": "k", "hint": ":", "click": "sendText", "longPress": "showPopup", "params": { "text": "k" } },
+      { "weight": 1.0, "text": "l", "hint": ";", "click": "sendText", "longPress": "showPopup", "params": { "text": "l" } }
     ]
   },
   "row5": {
     "height": 55.0,
     "keys": [
-      { "weight": 1.5, "text": "⇧", "click": "sendSpecial", "codeToSendClick": 115 },
-      { "weight": 1.0, "text": "z", "hint": "' ''", "click": "sendText", "longPress": "showPopup", "textToSend": "z" },
-      { "weight": 1.0, "text": "x", "hint": "\" \"\"", "click": "sendText", "longPress": "showPopup", "textToSend": "x" },
-      { "weight": 1.0, "text": "c", "hint": "`", "click": "sendText", "longPress": "showPopup", "textToSend": "c" },
-      { "weight": 1.0, "text": "v", "hint": "< <= <>", "click": "sendText", "longPress": "showPopup", "textToSend": "v" },
-      { "weight": 1.0, "text": "b", "hint": "> >= </>", "click": "sendText", "longPress": "showPopup", "textToSend": "b" },
-      { "weight": 1.0, "text": "n", "hint": "/ // /**/", "click": "sendText", "longPress": "showPopup", "textToSend": "n" },
-      { "weight": 1.0, "text": "m", "hint": "\\", "click": "sendText", "longPress": "showPopup", "textToSend": "m" },
-      { "weight": 1.5, "text": "⌫", "click": "delete", "longPress": "loop" }
+      { "weight": 1.5, "text": "⇧", "click": "sendSpecial", "verticalSwipe": "sendSpecial", "params": { "code": 115, "vCode": 115 } },
+      { "weight": 1.0, "text": "z", "hint": "' ''", "click": "sendText", "longPress": "showPopup", "params": { "text": "z" } },
+      { "weight": 1.0, "text": "x", "hint": "\" \"\"", "click": "sendText", "longPress": "showPopup", "params": { "text": "x" } },
+      { "weight": 1.0, "text": "c", "hint": "`", "click": "sendText", "longPress": "showPopup", "params": { "text": "c" } },
+      { "weight": 1.0, "text": "v", "hint": "< <= <>", "click": "sendText", "longPress": "showPopup", "params": { "text": "v" } },
+      { "weight": 1.0, "text": "b", "hint": "> >= </>", "click": "sendText", "longPress": "showPopup", "params": { "text": "b" } },
+      { "weight": 1.0, "text": "n", "hint": "/ // /**/", "click": "sendText", "longPress": "showPopup", "params": { "text": "n" } },
+      { "weight": 1.0, "text": "m", "hint": "\\", "click": "sendText", "longPress": "showPopup", "params": { "text": "m" } },
+      { "weight": 1.5, "text": "⌫", "click": "delete", "longPress": "loop", "horizontalSwipe": "delete", "params": {} }
     ]
   },
   "row6": {
     "height": 60.0,
     "keys": [
-      { "weight": 1.5, "text": "123", "click": "switchSymbols" },
-      { "weight": 1.0, "text": "ar", "click": "openEmoji" },
-      { "weight": 1.0, "text": ",", "click": "sendText", "textToSend": "," },
-      { "weight": 3.0, "text": "English", "hint": "العربية", "click": "sendText", "textToSend": " ", "leftScroll": "switchLang", "rightScroll": "switchLang" },
-      { "weight": 1.0, "text": ".", "click": "sendText", "textToSend": "." },
-      { "weight": 1.0, "text": "📋", "click": "openClipboard" },
-      { "weight": 1.5, "text": "⏎", "click": "sendCode", "codeToSendClick": 66 }
+      { "weight": 1.5, "text": "123", "click": "switchSymbols", "params": {} },
+      { "weight": 1.0, "text": "ar", "click": "openEmoji", "params": {} },
+      { "weight": 1.0, "text": ",", "click": "sendText", "params": { "text": "," } },
+      { "weight": 3.0, "text": "English", "hint": "العربية", "click": "sendText", "horizontalSwipe": "switchLang", "params": { "text": " " } },
+      { "weight": 1.0, "text": ".", "click": "sendText", "params": { "text": "." } },
+      { "weight": 1.0, "text": "📋", "click": "openClipboard", "params": {} },
+      { "weight": 1.5, "text": "⏎", "click": "sendCode", "params": { "code": 66 } }
     ]
   }
 }
@@ -262,6 +263,7 @@ class LayoutDatabase(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         insertDefaultLayout(db, "ar", DEFAULT_AR_JSON)
         insertDefaultLayout(db, "en", DEFAULT_EN_JSON)
     }
+    
     fun resetSingleLayoutToDefault(lang: String) {
         val defaultJson = when(lang) {
             "ar" -> DEFAULT_AR_JSON
