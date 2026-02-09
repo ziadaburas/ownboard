@@ -129,7 +129,9 @@ constructor(
                 }
             }
             "openEmoji" -> {
-                onClickFn = { /* Implement Emoji Open logic */ }
+                onClickFn = {
+                    OwnboardIME.ime.toggleEmoji()
+                }
             }
             "openClipboard" -> {
                 onClickFn = {

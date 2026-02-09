@@ -30,6 +30,7 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
     lateinit var keyboardContainer: LinearLayout
     lateinit var popupContainer: LinearLayout 
     lateinit var clipboardView: com.ownboard.app.view.ClipboardView
+    lateinit var emojiBoard: com.ownboard.app.view.EmojiView
     
     lateinit var dbHelper: LayoutDatabase
     lateinit var appLangDb: AppLanguageDbHelper 
@@ -126,6 +127,16 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
         
         rootView.addView(clipboardView, clipParams)
         
+        emojiBoard = com.ownboard.app.view.EmojiView(this)
+        val emojiParams = FrameLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            dpToPx(getCurrentKeyboardHeight()) // نفس ارتفاع الكيبورد
+        )
+        emojiParams.gravity = Gravity.BOTTOM
+        emojiBoard.visibility = View.GONE
+        
+        rootView.addView(emojiBoard, emojiParams)
+        
         return rootView
     }
 
@@ -152,11 +163,21 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
                 loadKeyboardFromDB(currentLang)
             }
         }
+        if (::emojiBoard.isInitialized) {
+            val params = emojiBoard.layoutParams
+            params.height = dpToPx(getCurrentKeyboardHeight())
+            emojiBoard.layoutParams = params
+        }
     }
 
     override fun onStartInputView(info: EditorInfo?, restarting: Boolean) {
         super.onStartInputView(info, restarting)
-
+        if (emojiBoard != null) {
+            emojiBoard!!.visibility = View.GONE
+        }
+        if (::keyboardContainer.isInitialized) {
+            keyboardContainer.visibility = View.VISIBLE
+        }
         if (info != null && info.packageName != null) {
             currentAppPackage = info.packageName
             currentLang = appLangDb.getAppLanguage(currentAppPackage)
@@ -171,6 +192,15 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
 
     override fun onFinishInputView(finishingInput: Boolean) {
         super.onFinishInputView(finishingInput)
+        
+        // إعادة تعيين الحالة: إخفاء الإيموجي وإظهار الكيبورد للمرة القادمة
+        if (emojiBoard != null) {
+            emojiBoard!!.visibility = View.GONE
+        }
+        if (::keyboardContainer.isInitialized) {
+            keyboardContainer.visibility = View.VISIBLE
+        }
+
         if (currentAppPackage.isNotEmpty()) {
             appLangDb.setAppLanguage(currentAppPackage, currentLang)
         }
@@ -188,6 +218,24 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
             
             keyboardContainer.visibility = View.GONE 
             clipboardView.visibility = View.VISIBLE
+        }
+    }
+    fun toggleEmoji() {
+        if (emojiBoard == null) return
+
+        if (emojiBoard!!.visibility == View.VISIBLE) {
+            // إغلاق اللوحة
+            emojiBoard!!.visibility = View.GONE
+            keyboardContainer.visibility = View.VISIBLE
+        } else {
+            // فتح اللوحة
+            keyboardContainer.visibility = View.GONE
+            clipboardView.visibility = View.GONE
+            
+            // --- التعديل الجديد: العودة للبداية (المستخدمة حديثاً) ---
+            emojiBoard!!.resetToFirstTab()
+            
+            emojiBoard!!.visibility = View.VISIBLE
         }
     }
 

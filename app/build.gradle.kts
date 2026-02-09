@@ -54,4 +54,15 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+    implementation("androidx.viewpager2:viewpager2:1.0.0")
+
+
+    // 2. لعرض شبكة الإيموجي (Grid) بسرعة عالية
+    implementation("androidx.recyclerview:recyclerview:1.2.1")
+
+    // 3. للمعالجة في الخلفية (تحميل JSON وقاعدة البيانات)
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4")
+
+    // 4. لربط العمليات بدورة حياة التطبيق
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.5.1")
 }
