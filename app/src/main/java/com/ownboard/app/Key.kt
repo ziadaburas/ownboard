@@ -26,9 +26,10 @@ constructor(
     var onHorizontalSwipeFn: (Int) -> Unit = {}
     var onVerticalSwipeFn: (Int) -> Unit = {}
     
-    // ==========================================
-    // التعديل هنا: فك الارتباط
-    // ==========================================
+    var rectPaint = Paint().apply {
+            color = bgColor
+            style = Paint.Style.FILL
+        }
     var hint = ""
         set(value) {
             field = value
@@ -161,7 +162,7 @@ constructor(
         val cy = height / 2
         
         canvas.drawColor(Color.TRANSPARENT)
-        val rectPaint = Paint().apply {
+        rectPaint = Paint().apply {
             color = bgColor
             style = Paint.Style.FILL
         }
