@@ -18,6 +18,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.ownboard.app.OwnboardIME
 import com.ownboard.app.db.ClipboardDbHelper
 import com.ownboard.app.ui.ClipboardManageActivity // تأكد من استيراد كلاس شاشة الإدارة
+import com.ownboard.app.utils.SettingsManager
 
 class ClipboardView @JvmOverloads constructor(
     context: Context,
@@ -27,6 +28,7 @@ class ClipboardView @JvmOverloads constructor(
 
     // متغير التحكم بالإغلاق بعد اللصق (يمكن تغييره من الإعدادات)
     var closeClipboardAfterPaste: Boolean = true
+        get() = SettingsManager.getBoolean("closeClipboardAfterPaste", true)
 
     // المتغيرات
     private lateinit var mainLayout: LinearLayout

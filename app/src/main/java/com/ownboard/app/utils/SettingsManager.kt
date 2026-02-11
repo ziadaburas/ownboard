@@ -115,6 +115,15 @@ object SettingsManager {
     fun getString(key: String): String {
         return valuesMap[key]?.toString() ?: ""
     }
+    fun getBoolean(key: String, defaultValue: Boolean): Boolean {
+        // يحاول يجيب القيمة ويحولها، إذا كانت null (مش موجودة) يرجع الـ defaultValue
+        return valuesMap[key]?.toString()?.toBoolean() ?: defaultValue
+    }
+
+    fun getString(key: String, defaultValue: String): String {
+        // يحاول يجيب النص، إذا كان null يرجع الـ defaultValue
+        return valuesMap[key]?.toString() ?: defaultValue
+    }
     
     // دالة للحصول على القوائم المفصولة بمسافات (مثل backTexts)
     fun getList(key: String): List<String> {

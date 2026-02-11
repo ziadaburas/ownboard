@@ -13,14 +13,13 @@ import android.view.*
 import android.graphics.Color
 import android.util.Log
 import org.json.JSONObject
+import org.json.JSONArray // تأكد من وجود هذا
 import java.util.Collections
 import android.view.Gravity
 import com.ownboard.app.db.*
 import com.ownboard.app.utils.*
 import android.view.HapticFeedbackConstants
-import org.json.JSONArray
-import android.text.InputType // تأكد من إضافة هذا الـ import فوق
-
+import android.text.InputType 
 
 class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedListener {
 
@@ -41,18 +40,15 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
 
     // تتبع اللغة الحالية (ar/en)
     var currentLang = "ar"
-    // تتبع حالة الرموز (محايدة)
+    // تتبع حالة الرموز
     var isSymbolsMode = false
     
     private var currentAppPackage: String = ""
-    private var ignoreNextClipUpdate = false
-    
+    private var lastInternalPasteTime: Long = 0 
+
     private lateinit var mapper: UsbGamepadMapper
 
-    val backTexts = listOf("<>","</>","/**/","\"\"","''","()","{}","[]")
-    var keyboardHeightPortraitDp = 340f  
-    var keyboardHeightLandscapeDp = 300f 
-    var bottomPaddingDp = 15f
+    // --- تم حذف المتغيرات الثابتة القديمة واستبدالها باستدعاءات SettingsManager في الأسفل ---
 
     init {
         ime = this
@@ -60,7 +56,9 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
 
     override fun onCreate() {
         super.onCreate()
+        // تهيئة مدير الإعدادات أولاً
         SettingsManager.init(applicationContext)
+        
         dbHelper = LayoutDatabase(this)
         appLangDb = AppLanguageDbHelper(this) 
         
@@ -76,11 +74,8 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
     }
 
     override fun onPrimaryClipChanged() {
-        // 1. التحقق من متغير التجاهل
-        if (ignoreNextClipUpdate) {
-            ignoreNextClipUpdate = false // إعادة المتغير لوضعه الطبيعي
-            return // توقف! لا تحفظ النص في قاعدة البيانات
-        }
+        if (System.currentTimeMillis() - lastInternalPasteTime < 500) return
+        
 
         if (clipboardManager?.hasPrimaryClip() == true) {
             val clipData = clipboardManager?.primaryClip
@@ -94,10 +89,10 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
         }
     }
 
-
+    // دالة اللصق الذكية (تم تحديثها في خطوات سابقة)
     fun pasteFromHistory(text: String) {
         val ic = currentInputConnection ?: return
-
+        lastInternalPasteTime = System.currentTimeMillis()
         // 1. إعداد طلب استخراج النص للتحقق من حالة الحقل
         val req = android.view.inputmethod.ExtractedTextRequest().apply {
             token = 1
@@ -107,7 +102,6 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
         }
 
         // 2. محاولة الحصول على النص
-        // إذا كان التطبيق (مثل Termux) لا يدعم ذلك، ستعود القيمة null
         val extractedText = ic.getExtractedText(req, 0)
 
         // 3. اتخاذ القرار
@@ -117,8 +111,7 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
         } else {
             // الحالة ب: التطبيق قياسي ويدعم التحرير -> نستخدم اللصق النظامي
             try {
-                // منع تكرار الحفظ في قاعدة البيانات لأننا سنحدث الحافظة الآن
-                ignoreNextClipUpdate = true
+               
 
                 // وضع النص في حافظة النظام
                 val clip = android.content.ClipData.newPlainText("copied_text", text)
@@ -127,26 +120,26 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
                 // إرسال أمر اللصق
                 val sent = ic.performContextMenuAction(android.R.id.paste)
 
-                // خطة طوارئ: إذا رفض التطبيق أمر اللصق رغم أنه يدعم الاستخراج
+                // خطة طوارئ
                 if (!sent) {
                     ic.commitText(text, 1)
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
-                // في حال حدوث أي خطأ، نعود للإرسال المباشر
                 ic.commitText(text, 1)
             }
         }
     }
 
-    
+    // دالة جلب الارتفاع من الإعدادات العامة
     private fun getCurrentKeyboardHeight(): Float {
         val configuration = resources.configuration
         return if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-            // جلب القيمة من الإعدادات
-            SettingsManager.getInt("keyboardHeightLandscape",300).toFloat()
+            // جلب القيمة من الإعدادات (الوضع العرضي)، الافتراضي 300
+            SettingsManager.getInt("keyboardHeightLandscape", 300).toFloat()
         } else {
-            SettingsManager.getInt("keyboardHeightPortrait",340 ).toFloat()
+            // جلب القيمة من الإعدادات (الوضع الطولي)، الافتراضي 340
+            SettingsManager.getInt("keyboardHeightPortrait", 340).toFloat()
         }
     }
 
@@ -187,7 +180,7 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
         emojiBoard = com.ownboard.app.view.EmojiView(this)
         val emojiParams = FrameLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT,
-            dpToPx(getCurrentKeyboardHeight()) // نفس ارتفاع الكيبورد
+            dpToPx(getCurrentKeyboardHeight())
         )
         emojiParams.gravity = Gravity.BOTTOM
         emojiBoard.visibility = View.GONE
@@ -212,7 +205,6 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
                  clipboardView.layoutParams = clipParams
             }
             
-            // إعادة التحميل (سواء كانت رموز أو لغة عادية)
             if (isSymbolsMode) {
                 loadKeyboardFromDB("symbols")
             } else {
@@ -224,7 +216,6 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
             params.height = dpToPx(getCurrentKeyboardHeight())
             emojiBoard.layoutParams = params
         }
-        
     }
 
     override fun onStartInputView(info: EditorInfo?, restarting: Boolean) {
@@ -242,7 +233,6 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
             currentAppPackage = ""
         }
         
-        // عند بدء الإدخال، نلغي وضع الرموز ونعود للغة الافتراضية
         isSymbolsMode = false
         loadKeyboardFromDB(currentLang)
     }
@@ -250,7 +240,6 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
     override fun onFinishInputView(finishingInput: Boolean) {
         super.onFinishInputView(finishingInput)
         
-        // إعادة تعيين الحالة: إخفاء الإيموجي وإظهار الكيبورد للمرة القادمة
         if (emojiBoard != null) {
             emojiBoard!!.visibility = View.GONE
         }
@@ -277,21 +266,17 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
             clipboardView.visibility = View.VISIBLE
         }
     }
+    
     fun toggleEmoji() {
         if (emojiBoard == null) return
 
         if (emojiBoard!!.visibility == View.VISIBLE) {
-            // إغلاق اللوحة
             emojiBoard!!.visibility = View.GONE
             keyboardContainer.visibility = View.VISIBLE
         } else {
-            // فتح اللوحة
             keyboardContainer.visibility = View.GONE
             clipboardView.visibility = View.GONE
-            
-            // --- التعديل الجديد: العودة للبداية (المستخدمة حديثاً) ---
             emojiBoard!!.resetToFirstTab()
-            
             emojiBoard!!.visibility = View.VISIBLE
         }
     }
@@ -302,7 +287,6 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
             buildKeyboard(jsonLayout)
         } else {
             Log.e("OwnboardIME", "Layout not found for lang: $lang")
-            // إذا لم يتم العثور على الرموز، نعود للعربية
             if(lang == "symbols") {
                  isSymbolsMode = false
                  loadKeyboardFromDB("ar")
@@ -312,7 +296,6 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
         }
     }
     
-
     private fun buildKeyboard(jsonString: String) {
         try {
             keyboardContainer.removeAllViews()
@@ -322,10 +305,11 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
             containerParams.height = totalHeightPx
             keyboardContainer.layoutParams = containerParams
 
-            // التعديل الأساسي هنا: استخدام JSONArray
+            // جلب الهامش السفلي من الإعدادات (الافتراضي 15)
+            val bottomPaddingDp = SettingsManager.getInt("bottomPadding", 15).toFloat()
+
             val rowsArray = JSONArray(jsonString)
 
-            // التكرار عبر المصفوفة مباشرة
             for (i in 0 until rowsArray.length()) {
                 val rowObj = rowsArray.getJSONObject(i)
                 
@@ -377,23 +361,22 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
                 keyboardContainer.addView(rowLayout)
             }
             
-            // ... (بقية كود الشريط السفلي كما هو)
+            // الشريط السفلي (Navigation Bar)
             if (bottomPaddingDp > 0) {
-                 // ... كود الـ Navigation Bar الموجود سابقاً
                  val navBar = LinearLayout(this).apply {
                     orientation = LinearLayout.HORIZONTAL
                     layoutParams = LinearLayout.LayoutParams(
                         ViewGroup.LayoutParams.MATCH_PARENT,
-                        dpToPx(bottomPaddingDp)
+                        dpToPx(bottomPaddingDp) // استخدام القيمة من الإعدادات
                     )
                     gravity = Gravity.TOP
                     setBackgroundColor(Color.parseColor("#1A1A1A"))
                 }
-                // ... (نفس كود الأزرار) ...
+                
                  fun createNavBarBtn(textStr: String, onClick: () -> Unit): TextView {
                     return TextView(this).apply {
                         text = textStr
-                        textSize = bottomPaddingDp
+                        textSize = bottomPaddingDp // حجم الخط نسبي للارتفاع
                         setTextColor(Color.LTGRAY)
                         includeFontPadding = false 
                         setPadding(0, 0, 0, 0)
@@ -438,20 +421,16 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
 
     
     fun switchLang() {
-        // إذا كنا في وضع الرموز، قم بالخروج منه أولاً (اختياري، أو يمكننا التبديل مباشرة)
-        // لكن المنطق هنا: تبديل اللغة يؤثر على currentLang
         if (currentLang == "ar") {
             currentLang = "en"
         } else {
             currentLang = "ar"
         }
         
-        // حفظ اللغة للتطبيق
         if (currentAppPackage.isNotEmpty()) {
             appLangDb.setAppLanguage(currentAppPackage, currentLang)
         }
         
-        // عند تبديل اللغة، نخرج من وضع الرموز ونعرض اللغة الجديدة
         isSymbolsMode = false
         loadKeyboardFromDB(currentLang)
 
@@ -459,26 +438,29 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
         Key.capslock.value = 0 
     }
 
-    // الدالة المسؤولة عن تبديل الرموز (Toggle)
     fun switchSymbols(ignored: Boolean) {
         if (!isSymbolsMode) {
-            // تفعيل وضع الرموز (دون تغيير currentLang)
             isSymbolsMode = true
             loadKeyboardFromDB("symbols")
         } else {
-            // العودة إلى وضع الحروف (باستخدام اللغة الحالية المحفوظة)
             isSymbolsMode = false
             loadKeyboardFromDB(currentLang)
         }
     }
 
+    // دالة إرسال النص (مع منطق إرجاع المؤشر من الإعدادات)
     fun sendKeyPress(text: String) {
         val ic = currentInputConnection ?: return
         val textToSend = if ((Key.capslock.value ?: 1) != 0) text.uppercase() else text
         
         ic.commitText(textToSend, 1)
 
-        if (text in backTexts) {
+        // 1. جلب قائمة النصوص التي تتطلب رجوع المؤشر (من الإعدادات)
+        val rawBackTexts = SettingsManager.getString("backTexts")
+        val backList = if (rawBackTexts.isNotEmpty()) rawBackTexts.split(" ") else emptyList()
+
+        // 2. التحقق هل النص المرسل (text الأصلية) موجود في القائمة؟
+        if (backList.contains(text)) {
              val backAmount = text.length / 2
              ic.commitText("", 1) 
              for(i in 1..backAmount) {

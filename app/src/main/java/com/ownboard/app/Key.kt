@@ -10,6 +10,7 @@ import android.widget.*
 import com.ownboard.app.OwnboardIME
 import com.ownboard.app.R
 import kotlin.math.abs
+import com.ownboard.app.utils.SettingsManager
 
 open class Key
 @JvmOverloads
@@ -49,7 +50,9 @@ constructor(
         }
     private var _backgroundImg: Drawable? = null
 
-    val longPressTimeout = 200L
+    // بدلاً من القيمة الثابتة، نأخذها من الإعدادات
+    val longPressTimeout: Long
+        get() = SettingsManager.getInt("longPressTimeout", 200).toLong()
     var isHoldKey = false
     val longPressHandler = Handler(Looper.getMainLooper())
     var isLongPressed = false
