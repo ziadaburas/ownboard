@@ -176,7 +176,7 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
         clipParams.gravity = Gravity.BOTTOM
         
         rootView.addView(clipboardView, clipParams)
-        
+         
         emojiBoard = com.ownboard.app.view.EmojiView(this)
         val emojiParams = FrameLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT,
@@ -186,7 +186,7 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
         emojiBoard.visibility = View.GONE
         
         rootView.addView(emojiBoard, emojiParams)
-         
+        
         return rootView
     }
 
@@ -220,9 +220,7 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
 
     override fun onStartInputView(info: EditorInfo?, restarting: Boolean) {
         super.onStartInputView(info, restarting)
-        if (emojiBoard != null) {
-            emojiBoard!!.visibility = View.GONE
-        }
+        
         if (::keyboardContainer.isInitialized) {
             keyboardContainer.visibility = View.VISIBLE
         }
@@ -240,11 +238,11 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
     override fun onFinishInputView(finishingInput: Boolean) {
         super.onFinishInputView(finishingInput)
         
-        if (emojiBoard != null) {
-            emojiBoard!!.visibility = View.GONE
+        if (::emojiBoard.isInitialized) {
+            emojiBoard.visibility = View.GONE // حذفنا !!
         }
-        if (::keyboardContainer.isInitialized) {
-            keyboardContainer.visibility = View.VISIBLE
+        if (::clipboardView.isInitialized) {
+            clipboardView.visibility = View.GONE // حذفنا !!
         }
 
         if (currentAppPackage.isNotEmpty()) {
@@ -268,16 +266,16 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
     }
     
     fun toggleEmoji() {
-        if (emojiBoard == null) return
+        if (!(::emojiBoard.isInitialized)) return
 
-        if (emojiBoard!!.visibility == View.VISIBLE) {
-            emojiBoard!!.visibility = View.GONE
+        if (emojiBoard.visibility == View.VISIBLE) {
+            emojiBoard.visibility = View.GONE
             keyboardContainer.visibility = View.VISIBLE
         } else {
             keyboardContainer.visibility = View.GONE
             clipboardView.visibility = View.GONE
-            emojiBoard!!.resetToFirstTab()
-            emojiBoard!!.visibility = View.VISIBLE
+            emojiBoard.resetToFirstTab()
+            emojiBoard.visibility = View.VISIBLE
         }
     }
 
@@ -451,7 +449,7 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
     // دالة إرسال النص (مع منطق إرجاع المؤشر من الإعدادات)
     fun sendKeyPress(text: String) {
         val ic = currentInputConnection ?: return
-        val textToSend = if ((Key.capslock.value ?: 1) != 0) text.uppercase() else text
+        val textToSend = if (Key.capslock.value != 0) text.uppercase() else text
         
         ic.commitText(textToSend, 1)
 
@@ -477,7 +475,7 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
     }
 
     fun sendKeyDown(keyCode: Int) {
-        if (keyCode <= 0) return
+        if (keyCode <= 0 || keyCode == 115) return
         val ic = currentInputConnection ?: return
         ic.sendKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, keyCode))
     }

@@ -8,7 +8,6 @@ import android.graphics.Color
 import android.util.AttributeSet
 import android.view.Gravity
 import android.view.View
-import android.view.ViewGroup
 import android.widget.Button
 import android.widget.FrameLayout
 import android.widget.LinearLayout
@@ -17,8 +16,9 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.ownboard.app.OwnboardIME
 import com.ownboard.app.db.ClipboardDbHelper
-import com.ownboard.app.ui.ClipboardManageActivity // تأكد من استيراد كلاس شاشة الإدارة
+import com.ownboard.app.ui.ClipboardManageActivity
 import com.ownboard.app.utils.SettingsManager
+import kotlinx.coroutines.* // استيراد مكتبة Coroutines
 
 class ClipboardView @JvmOverloads constructor(
     context: Context,
@@ -26,24 +26,29 @@ class ClipboardView @JvmOverloads constructor(
     defStyle: Int = 0
 ) : FrameLayout(context, attrs, defStyle) {
 
-    // متغير التحكم بالإغلاق بعد اللصق (يمكن تغييره من الإعدادات)
+    // متغير التحكم بالإغلاق
     var closeClipboardAfterPaste: Boolean = true
         get() = SettingsManager.getBoolean("closeClipboardAfterPaste", true)
 
-    // المتغيرات
+    // نطاق العمليات الخلفية (Coroutine Scope)
+    private val scope = CoroutineScope(Dispatchers.Main + Job())
+
     private lateinit var mainLayout: LinearLayout
     private lateinit var topRow: LinearLayout
-    private lateinit var centerContainer: FrameLayout // حاوية تجمع القائمة والديالوج
+    private lateinit var centerContainer: FrameLayout
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: ClipboardAdapter
-    private lateinit var dialog: LinearLayout
+    
+    // عناصر الديالوج
+    private lateinit var dialogLayout: LinearLayout // تم تغيير الاسم لتوضيح أنها الحاوية
     private lateinit var textViewDialog: TextView
+    private lateinit var buttonsContainer: LinearLayout
 
     // الأزرار العلوية
     lateinit var closeBtn: Button
     lateinit var goToTopBtn: Button
     lateinit var goToDownBtn: Button
-    lateinit var goToSettingsBtn: Button
+    lateinit var settingsBtn: Button
 
     // أزرار الديالوج
     lateinit var closeDialogBtn: Button
@@ -57,33 +62,33 @@ class ClipboardView @JvmOverloads constructor(
         visibility = View.GONE
         setBackgroundColor(Color.parseColor("#222222"))
 
-        // 1. إنشاء التخطيط الرئيسي (عمودي)
+        // 1. التخطيط الرئيسي
         mainLayout = LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
             layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT)
         }
         addView(mainLayout)
 
-        // 2. تصميم الشريط العلوي والأزرار
+        // 2. الشريط العلوي
         topRow = LinearLayout(context).apply {
             setBackgroundColor(0xFF121212.toInt())
             orientation = LinearLayout.HORIZONTAL
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
-                dpToPx(40f).toInt() // ارتفاع ثابت للشريط العلوي
+                dpToPx(40f).toInt()
             )
         }
 
-        // 3. إنشاء حاوية الوسط (تحتوي على القائمة والديالوج فوق بعضهما)
+        // 3. حاوية الوسط
         centerContainer = FrameLayout(context).apply {
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 0,
-                1f // تأخذ باقي المساحة
+                1f
             )
         }
 
-        // 4. تهيئة القائمة (RecyclerView)
+        // 4. القائمة
         recyclerView = RecyclerView(context).apply {
             layoutManager = LinearLayoutManager(context)
             layoutParams = FrameLayout.LayoutParams(
@@ -97,26 +102,38 @@ class ClipboardView @JvmOverloads constructor(
             onItemLongClick = { item -> showDialog(item.text, item.isPinned) }
         )
         recyclerView.adapter = adapter
-
-        // إضافة القائمة لحاوية الوسط
         centerContainer.addView(recyclerView)
 
-        // 5. تصميم الديالوج (داخل حاوية الوسط ليظهر فوق القائمة فقط)
+        // 5. الديالوج
         textViewDialog = TextView(context).apply {
             text = ""
             setTextColor(Color.WHITE)
             textSize = 16f
             setBackgroundColor(0xFF2D2D2D.toInt())
             gravity = Gravity.CENTER
-            // النص يأخذ المساحة المتبقية داخل الديالوج
             layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f)
         }
 
-        val bottomRowDialog = LinearLayout(context).apply {
+        buttonsContainer = LinearLayout(context).apply {
             orientation = LinearLayout.HORIZONTAL
             layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dpToPx(50f).toInt())
         }
 
+        dialogLayout = LinearLayout(context).apply {
+            isClickable = true
+            setBackgroundColor(0xFF222222.toInt())
+            orientation = LinearLayout.VERTICAL
+            visibility = View.GONE
+            layoutParams = FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                FrameLayout.LayoutParams.MATCH_PARENT
+            )
+            addView(textViewDialog)
+            addView(buttonsContainer)
+        }
+        centerContainer.addView(dialogLayout)
+
+        // بناء أزرار الديالوج
         val dialogBtnParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1f).apply {
             setMargins(2, 2, 2, 2)
         }
@@ -127,51 +144,38 @@ class ClipboardView @JvmOverloads constructor(
             val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
             val clip = ClipData.newPlainText("copied", textViewDialog.text.toString())
             clipboard.setPrimaryClip(clip)
-            refresh()
             hideDialog()
         }
         
         deleteDialogBtn = createDialogButton("حذف", dialogBtnParams) {
-            clipboardDB.deleteText(textViewDialog.text.toString())
-            refresh()
-            hideDialog()
+            val textToDelete = textViewDialog.text.toString()
+            scope.launch {
+                withContext(Dispatchers.IO) {
+                    clipboardDB.deleteText(textToDelete)
+                }
+                refresh() // تحديث القائمة بعد الحذف
+                hideDialog()
+            }
         }
         
         pinDialogBtn = createDialogButton("تثبيت", dialogBtnParams) {
-            // الوظيفة تتحدد عند العرض
+            // سيتم تعيين المستمع (Listener) عند فتح الديالوج لأن الحالة تتغير
         }
 
-        bottomRowDialog.addView(closeDialogBtn)
-        bottomRowDialog.addView(copyDialogBtn)
-        bottomRowDialog.addView(pinDialogBtn)
-        bottomRowDialog.addView(deleteDialogBtn)
+        buttonsContainer.addView(closeDialogBtn)
+        buttonsContainer.addView(copyDialogBtn)
+        buttonsContainer.addView(pinDialogBtn)
+        buttonsContainer.addView(deleteDialogBtn)
 
-        dialog = LinearLayout(context).apply {
-            isClickable = true // لمنع النقر على القائمة خلفه
-            setBackgroundColor(0xFF222222.toInt())
-            orientation = LinearLayout.VERTICAL
-            visibility = View.GONE
-            layoutParams = FrameLayout.LayoutParams(
-                FrameLayout.LayoutParams.MATCH_PARENT,
-                FrameLayout.LayoutParams.MATCH_PARENT
-            )
-
-            addView(textViewDialog)
-            addView(bottomRowDialog)
-        }
-
-        // إضافة الديالوج لحاوية الوسط (فوق القائمة)
-        centerContainer.addView(dialog)
-
-        // 6. إعداد أزرار الشريط العلوي
+        // 6. أزرار الشريط العلوي
         val btnParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1f)
 
         closeBtn = createTopButton("\u2716", btnParams) {
-            // المنطق المطلوب: إذا الديالوج مفتوح أغلقه، وإلا أغلق الحافظة
-            if (dialog.visibility == View.VISIBLE) {
+            if (dialogLayout.visibility == View.VISIBLE) {
                 hideDialog()
-            } 
-            OwnboardIME.ime.toggleClipboard()
+            } else {
+                OwnboardIME.ime.toggleClipboard()
+            }
         }
 
         goToTopBtn = createTopButton("\u25b2", btnParams) {
@@ -181,26 +185,22 @@ class ClipboardView @JvmOverloads constructor(
             if (adapter.itemCount > 0) recyclerView.smoothScrollToPosition(adapter.itemCount - 1)
         }
         
-        // --- تعديل زر الإعدادات لفتح شاشة إدارة الحافظة ---
-        goToSettingsBtn = createTopButton("\u2699", btnParams) {
+        settingsBtn = createTopButton("\u2699", btnParams) {
             try {
                 val intent = Intent(context, ClipboardManageActivity::class.java)
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) // ضروري لأننا نفتح من Service
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 context.startActivity(intent)
-                
-                // إغلاق لوحة الحافظة في الكيبورد لكي يظهر التطبيق
                 OwnboardIME.ime.toggleClipboard()
             } catch (e: Exception) {
                 e.printStackTrace()
             }
         }
 
-        topRow.addView(goToSettingsBtn)
+        topRow.addView(settingsBtn)
         topRow.addView(goToDownBtn)
         topRow.addView(goToTopBtn)
         topRow.addView(closeBtn)
 
-        // تجميع التخطيط الرئيسي
         mainLayout.addView(topRow)
         mainLayout.addView(centerContainer)
     }
@@ -226,30 +226,57 @@ class ClipboardView @JvmOverloads constructor(
         }
     }
 
+    // --- الوظائف المحسنة (Async) ---
+
     fun refresh() {
-        val items = clipboardDB.getClipboardItems()
-        adapter.updateList(items)
+        scope.launch {
+            // 1. جلب البيانات في الخلفية
+            val items = withContext(Dispatchers.IO) {
+                clipboardDB.getClipboardItems()
+            }
+            // 2. تحديث الواجهة في الخيط الرئيسي
+            adapter.updateList(items)
+        }
+    }
+
+    fun addClip(text: String) {
+        if (text.isBlank()) return
+
+        scope.launch {
+            // 1. الحفظ في الخلفية
+            withContext(Dispatchers.IO) {
+                clipboardDB.addClip(text)
+            }
+            // 2. تحديث القائمة إذا كانت ظاهرة
+            if (visibility == View.VISIBLE) {
+                refresh()
+            }
+        }
     }
 
     private fun showDialog(text: String, isPinned: Boolean) {
         textViewDialog.text = text
         pinDialogBtn.text = if (isPinned) "الغاء التثبيت" else "تثبيت"
+        
+        // تحديث وظيفة زر التثبيت لتكون غير متزامنة
         pinDialogBtn.setOnClickListener {
-            clipboardDB.setPinned(text, !isPinned)
-            refresh()
-            hideDialog()
+            scope.launch {
+                withContext(Dispatchers.IO) {
+                    clipboardDB.setPinned(text, !isPinned)
+                }
+                refresh()
+                hideDialog()
+            }
         }
-        dialog.visibility = View.VISIBLE
+        dialogLayout.visibility = View.VISIBLE
     }
 
     fun hideDialog() {
-        dialog.visibility = View.GONE
+        dialogLayout.visibility = View.GONE
     }
 
     private fun onPaste(text: String) {
-        //OwnboardIME.ime.sendKeyPress(text)
         OwnboardIME.ime.pasteFromHistory(text)
-        // التحقق من المتغير الجديد للإغلاق
         if (closeClipboardAfterPaste) {
             OwnboardIME.ime.toggleClipboard()
         }
@@ -259,19 +286,14 @@ class ClipboardView @JvmOverloads constructor(
         super.setVisibility(v)
         if (v == View.VISIBLE) {
             refresh()
-            // تأكد من إخفاء الديالوج عند فتح الحافظة من جديد
             hideDialog()
         }
     }
 
-    fun addClip(text: String) {
-        if (text.isBlank()) return
-
-        clipboardDB.addClip(text)
-
-        if (visibility == View.VISIBLE) {
-            refresh()
-        }
+    // تنظيف العمليات الخلفية عند تدمير الـ View
+    override fun onDetachedFromWindow() {
+        super.onDetachedFromWindow()
+        scope.cancel()
     }
 
     fun dpToPx(dp: Float): Float {

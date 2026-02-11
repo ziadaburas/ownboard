@@ -88,7 +88,7 @@ constructor(
         if(code > 0) isConstKey = true 
     }
 
-    open var click = ""
+    var click = ""
     set(value) {
         field = value
         when(value){
@@ -106,7 +106,7 @@ constructor(
             }
             "switchSymbols"->{
                 onClickFn = {
-                    Key.isSymbols.value = !(Key.isSymbols.value ?: true)
+                    Key.isSymbols.value = !(Key.isSymbols.value)
                     OwnboardIME.ime.switchSymbols(Key.isSymbols.value == true)
                 }
                 text = if (Key.isSymbols.value == true) "abc" else "123"
@@ -114,7 +114,8 @@ constructor(
             }
             "sendSpecial"->{
                 onClickFn = {
-                    if ((listener.value ?: 1) != 0) disable() else enable()
+                    if (listener.value != 0) disable() 
+                    else enable()
                 }
                 onLongPressFn = { enable(1) }
             }
@@ -144,7 +145,7 @@ constructor(
         }
     }
 
-    open var longPress = ""
+    var longPress = ""
     set(value) {
         field = value
         if(click == "sendSpecial") return
@@ -189,18 +190,18 @@ constructor(
         }
     }
 
-    open var horizontalSwipe = ""
+    var horizontalSwipe = ""
     set(value) {
         field = value
         when(value){
             "sendText"->{
-                onHorizontalSwipeFn = { dir ->
+                onHorizontalSwipeFn = { _ ->
                     val txt = if(params.containsKey("hText")) getParamString("hText") else getParamString("text")
                     if(txt.isNotEmpty()) OwnboardIME.ime.sendKeyPress(txt) 
                 }
             }
             "sendCode"->{
-                 onHorizontalSwipeFn = { dir ->
+                 onHorizontalSwipeFn = { _ ->
                     val code = if(params.containsKey("hCode")) getParamInt("hCode") else getParamInt("code")
                     OwnboardIME.ime.sendKeyPress(code) 
                 }
@@ -218,18 +219,18 @@ constructor(
         }
     }
 
-    open var verticalSwipe = ""
+    var verticalSwipe = ""
     set(value) {
         field = value
         when(value){
             "sendText"->{
-                onVerticalSwipeFn = { dir ->
+                onVerticalSwipeFn = { _ ->
                     val txt = if(params.containsKey("vText")) getParamString("vText") else getParamString("text")
                     if(txt.isNotEmpty()) OwnboardIME.ime.sendKeyPress(txt) 
                 }
             }
             "sendCode"->{
-                 onVerticalSwipeFn = { dir ->
+                 onVerticalSwipeFn = { _ ->
                     val code = if(params.containsKey("vCode")) getParamInt("vCode") else getParamInt("code")
                     OwnboardIME.ime.sendKeyPress(code) 
                 }
@@ -265,8 +266,7 @@ constructor(
     set(value) {
         field = value
         listener.addListener {
-                val valu = it ?: 0
-                if (valu == 0) {
+                if (it == 0) {
                     setBackgroundColor(0xFF2D2D2D.toInt())
                     disable()
                 }else {
@@ -274,8 +274,8 @@ constructor(
                 }
             }
         }
-    open var onClickFn = {}
-    open var onLongPressFn  = {}
+    var onClickFn = {}
+    var onLongPressFn  = {}
     
     override fun onLongPress() {
         if(!isLongPressed) {
@@ -291,14 +291,14 @@ constructor(
         super.onClick()
     }
     
-    open fun disable() {
+    fun disable() {
         val code = getParamInt("code")
         OwnboardIME.ime.sendKeyUp(code)
         listener.value = 0
         setBackgroundColor(0xFF2D2D2D.toInt())
     }
     
-    open fun enable(hold: Int = 0) {
+    fun enable(hold: Int = 0) {
         val code = getParamInt("code")
         listener.value = hold + 1
         OwnboardIME.ime.sendKeyDown(code)
@@ -350,8 +350,7 @@ constructor(
         layoutParams = paramsLayout
         Key.capslock.addListener { 
             if(!isConstKey){
-                var value = it ?: 0
-                if (value != 0) {
+                if (it != 0) {
                     text = text.uppercase()
                 } else {
                     text = text.lowercase()
