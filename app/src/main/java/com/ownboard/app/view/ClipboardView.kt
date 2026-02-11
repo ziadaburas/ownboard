@@ -245,7 +245,8 @@ class ClipboardView @JvmOverloads constructor(
     }
 
     private fun onPaste(text: String) {
-        OwnboardIME.ime.sendKeyPress(text)
+        //OwnboardIME.ime.sendKeyPress(text)
+        OwnboardIME.ime.pasteFromHistory(text)
         // التحقق من المتغير الجديد للإغلاق
         if (closeClipboardAfterPaste) {
             OwnboardIME.ime.toggleClipboard()

@@ -18,6 +18,7 @@ import android.view.Gravity
 import com.ownboard.app.db.*
 import android.view.HapticFeedbackConstants
 import org.json.JSONArray
+import android.text.InputType // تأكد من إضافة هذا الـ import فوق
 
 
 class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedListener {
@@ -43,7 +44,7 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
     var isSymbolsMode = false
     
     private var currentAppPackage: String = ""
-
+    private var ignoreNextClipUpdate = false
     val backTexts = listOf("<>","</>","/**/","\"\"","''","()","{}","[]")
     
     private lateinit var mapper: UsbGamepadMapper
@@ -73,14 +74,59 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
     }
 
     override fun onPrimaryClipChanged() {
+        // 1. التحقق من متغير التجاهل
+        if (ignoreNextClipUpdate) {
+            ignoreNextClipUpdate = false // إعادة المتغير لوضعه الطبيعي
+            return // توقف! لا تحفظ النص في قاعدة البيانات
+        }
+
         if (clipboardManager?.hasPrimaryClip() == true) {
             val clipData = clipboardManager?.primaryClip
             if (clipData != null && clipData.itemCount > 0) {
                 val text = clipData.getItemAt(0).text?.toString() ?: ""
+                // تأكدنا أنه ليس نسخ داخلي، الآن نحفظه
                 if (text.isNotEmpty() && ::clipboardView.isInitialized) {
                     clipboardView.addClip(text)
                 }
             }
+        }
+    }
+
+
+    fun pasteFromHistory(text: String) {
+        val ic = currentInputConnection ?: return
+        val editorInfo = currentInputEditorInfo // هذا المتغير موجود تلقائياً في InputMethodService
+
+        // 1. التحقق الذكي: هل الحقل من نوع "NULL" (مثل Termux والألعاب)؟
+        // TYPE_NULL تعني أن التطبيق يريد استقبال الأحداث الخام (Raw Events) فقط
+        val isRawInput = editorInfo != null && editorInfo.inputType == InputType.TYPE_NULL
+
+        if (isRawInput) {
+            // إذا كان تيرمكس أو لعبة -> أرسل النص مباشرة (لأن اللصق النظامي قد لا يعمل)
+            ic.commitText(text, 1)
+            return
+        }
+
+        try {
+            // 2. للتطبيقات العادية (واتساب، متصفح، ملاحظات) -> استخدم اللصق النظامي
+            
+            ignoreNextClipUpdate = true // لا تحفظ هذا اللصق في التاريخ
+
+            // ضع النص في الحافظة
+            val clip = android.content.ClipData.newPlainText("copied_text", text)
+            clipboardManager?.setPrimaryClip(clip)
+
+            // أرسل أمر اللصق
+            val sent = ic.performContextMenuAction(android.R.id.paste)
+
+            // 3. خطة بديلة (Fallback)
+            if (!sent) {
+                ic.commitText(text, 1)
+            }
+            
+        } catch (e: Exception) {
+            e.printStackTrace()
+            ic.commitText(text, 1)
         }
     }
 
