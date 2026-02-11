@@ -39,6 +39,7 @@
         <activity android:name=".ui.RowEditorActivity" />
         <activity android:name=".ui.KeyEditorActivity" />
         <activity android:name=".ui.ClipboardManageActivity" />
+        <activity android:name=".ui.GlobalSettingsActivity" />
 
     </application>
 

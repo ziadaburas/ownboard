@@ -16,6 +16,7 @@ import org.json.JSONObject
 import java.util.Collections
 import android.view.Gravity
 import com.ownboard.app.db.*
+import com.ownboard.app.utils.*
 import android.view.HapticFeedbackConstants
 import org.json.JSONArray
 import android.text.InputType // تأكد من إضافة هذا الـ import فوق
@@ -45,10 +46,10 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
     
     private var currentAppPackage: String = ""
     private var ignoreNextClipUpdate = false
-    val backTexts = listOf("<>","</>","/**/","\"\"","''","()","{}","[]")
     
     private lateinit var mapper: UsbGamepadMapper
 
+    val backTexts = listOf("<>","</>","/**/","\"\"","''","()","{}","[]")
     var keyboardHeightPortraitDp = 340f  
     var keyboardHeightLandscapeDp = 300f 
     var bottomPaddingDp = 15f
@@ -59,6 +60,7 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
 
     override fun onCreate() {
         super.onCreate()
+        SettingsManager.init(applicationContext)
         dbHelper = LayoutDatabase(this)
         appLangDb = AppLanguageDbHelper(this) 
         
@@ -137,12 +139,14 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
         }
     }
 
+    
     private fun getCurrentKeyboardHeight(): Float {
         val configuration = resources.configuration
         return if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-            keyboardHeightLandscapeDp
+            // جلب القيمة من الإعدادات
+            SettingsManager.getInt("keyboardHeightLandscape",300).toFloat()
         } else {
-            keyboardHeightPortraitDp
+            SettingsManager.getInt("keyboardHeightPortrait",340 ).toFloat()
         }
     }
 
