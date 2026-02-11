@@ -95,38 +95,45 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
 
     fun pasteFromHistory(text: String) {
         val ic = currentInputConnection ?: return
-        val editorInfo = currentInputEditorInfo // هذا المتغير موجود تلقائياً في InputMethodService
 
-        // 1. التحقق الذكي: هل الحقل من نوع "NULL" (مثل Termux والألعاب)؟
-        // TYPE_NULL تعني أن التطبيق يريد استقبال الأحداث الخام (Raw Events) فقط
-        val isRawInput = editorInfo != null && editorInfo.inputType == InputType.TYPE_NULL
-
-        if (isRawInput) {
-            // إذا كان تيرمكس أو لعبة -> أرسل النص مباشرة (لأن اللصق النظامي قد لا يعمل)
-            ic.commitText(text, 1)
-            return
+        // 1. إعداد طلب استخراج النص للتحقق من حالة الحقل
+        val req = android.view.inputmethod.ExtractedTextRequest().apply {
+            token = 1
+            flags = 0
+            hintMaxLines = 2
+            hintMaxChars = 500
         }
 
-        try {
-            // 2. للتطبيقات العادية (واتساب، متصفح، ملاحظات) -> استخدم اللصق النظامي
-            
-            ignoreNextClipUpdate = true // لا تحفظ هذا اللصق في التاريخ
+        // 2. محاولة الحصول على النص
+        // إذا كان التطبيق (مثل Termux) لا يدعم ذلك، ستعود القيمة null
+        val extractedText = ic.getExtractedText(req, 0)
 
-            // ضع النص في الحافظة
-            val clip = android.content.ClipData.newPlainText("copied_text", text)
-            clipboardManager?.setPrimaryClip(clip)
+        // 3. اتخاذ القرار
+        if (extractedText == null) {
+            // الحالة أ: التطبيق "غبي" أو خام (Raw Input) -> نرسل النص مباشرة
+            ic.commitText(text, 1)
+        } else {
+            // الحالة ب: التطبيق قياسي ويدعم التحرير -> نستخدم اللصق النظامي
+            try {
+                // منع تكرار الحفظ في قاعدة البيانات لأننا سنحدث الحافظة الآن
+                ignoreNextClipUpdate = true
 
-            // أرسل أمر اللصق
-            val sent = ic.performContextMenuAction(android.R.id.paste)
+                // وضع النص في حافظة النظام
+                val clip = android.content.ClipData.newPlainText("copied_text", text)
+                clipboardManager?.setPrimaryClip(clip)
 
-            // 3. خطة بديلة (Fallback)
-            if (!sent) {
+                // إرسال أمر اللصق
+                val sent = ic.performContextMenuAction(android.R.id.paste)
+
+                // خطة طوارئ: إذا رفض التطبيق أمر اللصق رغم أنه يدعم الاستخراج
+                if (!sent) {
+                    ic.commitText(text, 1)
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                // في حال حدوث أي خطأ، نعود للإرسال المباشر
                 ic.commitText(text, 1)
             }
-            
-        } catch (e: Exception) {
-            e.printStackTrace()
-            ic.commitText(text, 1)
         }
     }
 
