@@ -20,8 +20,11 @@ import com.ownboard.app.db.*
 import com.ownboard.app.utils.*
 import android.view.HapticFeedbackConstants
 import android.text.InputType 
-
-class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedListener {
+import kotlinx.coroutines.*
+import android.widget.Toast
+import android.view.inputmethod.ExtractedTextRequest
+import android.view.inputmethod.ExtractedText // ستحتاجه أيضاً
+class OwnboardIME : InputMethodService() {
 
     companion object {
         lateinit var ime: OwnboardIME
@@ -37,7 +40,9 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
     lateinit var appLangDb: AppLanguageDbHelper 
 
     private var clipboardManager: ClipboardManager? = null
-
+    private lateinit var clipboardDbHelper: ClipboardDbHelper
+    var clipboardListener: ClipboardManager.OnPrimaryClipChangedListener? = null
+   
     // تتبع اللغة الحالية (ar/en)
     var currentLang = "ar"
     // تتبع حالة الرموز
@@ -47,7 +52,7 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
     private var lastInternalPasteTime: Long = 0 
 
     private lateinit var mapper: UsbGamepadMapper
-
+    private val imeScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
     // --- تم حذف المتغيرات الثابتة القديمة واستبدالها باستدعاءات SettingsManager في الأسفل ---
 
     init {
@@ -63,35 +68,81 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
         appLangDb = AppLanguageDbHelper(this) 
         
         mapper = UsbGamepadMapper(currentInputConnection)
+        
+        clipboardDbHelper = ClipboardDbHelper(this)
 
-        clipboardManager = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-        clipboardManager?.addPrimaryClipChangedListener(this)
+        val clipboard = this.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        //clipboardManager?.addPrimaryClipChangedListener
+        clipboardListener = ClipboardManager.OnPrimaryClipChangedListener {
+            val clip = clipboard.primaryClip
+            if (clip != null && clip.itemCount > 0 ) {
+                val copiedText =clip.getItemAt(0).coerceToText(this).toString()
+                if (copiedText.isNotBlank() ) {
+                    if (::clipboardView.isInitialized && false) {
+                        clipboardView.addClip(copiedText) 
+                    }else{
+                        clipboardDbHelper.addClip(copiedText)
+                    }
+                }
+            }
+        }
+        clipboard.addPrimaryClipChangedListener( clipboardListener)
+       
     }
 
+    
     override fun onDestroy() {
         super.onDestroy()
-        clipboardManager?.removePrimaryClipChangedListener(this)
-    }
-
-    override fun onPrimaryClipChanged() {
-        if (System.currentTimeMillis() - lastInternalPasteTime < 500) return
-        
-
-        if (clipboardManager?.hasPrimaryClip() == true) {
-            val clipData = clipboardManager?.primaryClip
-            if (clipData != null && clipData.itemCount > 0) {
-                val text = clipData.getItemAt(0).text?.toString() ?: ""
-                // تأكدنا أنه ليس نسخ داخلي، الآن نحفظه
-                if (text.isNotEmpty() && ::clipboardView.isInitialized) {
-                    clipboardView.addClip(text)
+        imeScope.cancel()
+        if (::emojiBoard.isInitialized) {
+            emojiBoard.cleanup()
+        }
+        try {
+            val clipboard =  this.getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
+            clipboard.removePrimaryClipChangedListener( clipboardListener)
+       
+            clipboardDbHelper.close()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        // تنظيف جميع المفاتيح
+        for (i in 0 until keyboardContainer.childCount) {
+            val row = keyboardContainer.getChildAt(i) as? LinearLayout
+            row?.let {
+                for (j in 0 until it.childCount) {
+                    (it.getChildAt(j) as? Key)?.cleanup()
                 }
             }
         }
     }
+/* 
+    override fun onPrimaryClipChanged() {
+        
+        if (clipboardManager?.hasPrimaryClip() == true) {
+            val clipData = clipboardManager?.primaryClip
+            if (clipData != null && clipData.itemCount > 0) {
+                var text = clipData.getItemAt(0).text?.toString() ?: ""
+                // تأكدنا أنه ليس نسخ داخلي، الآن نحفظه
+                if (text.isEmpty() ) {
+                    text =  "rrrrrrr"
+                }
+                 if (::clipboardView.isInitialized) {
+                    clipboardView.addClip(text) 
+                }else{
+                    clipboardDbHelper.addClip(text)
+                }
+            }
+        }
+
+    }
+        */
 
     // دالة اللصق الذكية (تم تحديثها في خطوات سابقة)
     fun pasteFromHistory(text: String) {
         val ic = currentInputConnection ?: return
+        ic.commitText(text, 1)
+        return
+
         lastInternalPasteTime = System.currentTimeMillis()
         // 1. إعداد طلب استخراج النص للتحقق من حالة الحقل
         val req = android.view.inputmethod.ExtractedTextRequest().apply {
@@ -218,7 +269,7 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
         }
     }
 
-    override fun onStartInputView(info: EditorInfo?, restarting: Boolean) {
+    /*override fun onStartInputView(info: EditorInfo?, restarting: Boolean) {
         super.onStartInputView(info, restarting)
         
         if (::keyboardContainer.isInitialized) {
@@ -233,7 +284,35 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
         
         isSymbolsMode = false
         loadKeyboardFromDB(currentLang)
-    }
+    }*/
+    override fun onStartInputView(info: EditorInfo?, restarting: Boolean) {
+        super.onStartInputView(info, restarting)
+        
+        if (emojiBoard != null) {
+            emojiBoard!!.visibility = View.GONE
+        }
+        if (::keyboardContainer.isInitialized) {
+            keyboardContainer.visibility = View.VISIBLE
+        }
+        
+        if (info != null && info.packageName != null) {
+            currentAppPackage = info.packageName
+            
+            // قراءة اللغة بشكل async
+            imeScope.launch {
+                currentLang = withContext(Dispatchers.IO) {
+                    appLangDb.getAppLanguage(currentAppPackage)
+                }
+                // بعد الحصول على اللغة، نحمل الكيبورد
+                isSymbolsMode = false
+                loadKeyboardFromDB(currentLang)
+            }
+        } else {
+            currentAppPackage = ""
+            isSymbolsMode = false
+            loadKeyboardFromDB(currentLang)
+        }
+}
 
     override fun onFinishInputView(finishingInput: Boolean) {
         super.onFinishInputView(finishingInput)
@@ -246,7 +325,10 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
         }
 
         if (currentAppPackage.isNotEmpty()) {
-            appLangDb.setAppLanguage(currentAppPackage, currentLang)
+            // حفظ اللغة بشكل async
+            imeScope.launch(Dispatchers.IO) {
+                appLangDb.setAppLanguage(currentAppPackage, currentLang)
+            }
         }
     }
 
@@ -279,7 +361,7 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
         }
     }
 
-    private fun loadKeyboardFromDB(lang: String) {
+    private fun loadKeyboardFromDB1(lang: String) {
         val jsonLayout = dbHelper.getLayoutByLang(lang)
         if (jsonLayout.isNotEmpty()) {
             buildKeyboard(jsonLayout)
@@ -293,6 +375,131 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
             }
         }
     }
+    private fun loadKeyboardFromDB(lang: String) {
+        val jsonLayout = dbHelper.getLayoutByLang(lang)
+        if (jsonLayout.isNotEmpty()) {
+            // نحمل ونحلل JSON في الخلفية
+            imeScope.launch {
+                val parsedLayout = withContext(Dispatchers.Default) {
+                    parseKeyboardLayout(jsonLayout)
+                }
+                // نرجع للـ Main Thread لإنشاء Views
+                buildKeyboardUI(parsedLayout)
+            }
+        } else {
+            Log.e("OwnboardIME", "Layout not found for lang: $lang")
+            if(lang == "symbols") {
+                isSymbolsMode = false
+                loadKeyboardFromDB("ar")
+            } else if(lang != "ar") {
+                loadKeyboardFromDB("ar")
+            }
+        }
+        }
+
+        // دالة مساعدة للتحليل (تعمل في الخلفية)
+        private fun parseKeyboardLayout(jsonString: String): List<KeyboardRow> {
+        val rows = mutableListOf<KeyboardRow>()
+        val rowsArray = JSONArray(jsonString)
+
+        for (i in 0 until rowsArray.length()) {
+            val rowObj = rowsArray.getJSONObject(i)
+            val rowWeight = rowObj.optDouble("height", 1.0).toFloat()
+            val keysArray = rowObj.getJSONArray("keys")
+            
+            val keys = mutableListOf<KeyData>()
+            for (j in 0 until keysArray.length()) {
+                val keyData = keysArray.getJSONObject(j)
+                keys.add(KeyData(
+                    text = keyData.optString("text", ""),
+                    hint = keyData.optString("hint", ""),
+                    weight = keyData.optDouble("weight", 1.0).toFloat(),
+                    click = keyData.optString("click", ""),
+                    longPress = keyData.optString("longPress", ""),
+                    horizontalSwipe = keyData.optString("horizontalSwipe", ""),
+                    verticalSwipe = keyData.optString("verticalSwipe", ""),
+                    params = extractParams(keyData.optJSONObject("params"))
+                ))
+            }
+            
+            rows.add(KeyboardRow(rowWeight, keys))
+        }
+
+        return rows
+        }
+
+        private fun extractParams(paramsObj: JSONObject?): Map<String, Any> {
+        val paramsMap = mutableMapOf<String, Any>()
+        if (paramsObj != null) {
+            val iter = paramsObj.keys()
+            while (iter.hasNext()) {
+                val key = iter.next()
+                paramsMap[key] = paramsObj.get(key)
+            }
+        }
+        return paramsMap
+        }
+
+        // دالة لإنشاء UI (على Main Thread)
+        private fun buildKeyboardUI(rows: List<KeyboardRow>) {
+        keyboardContainer.removeAllViews()
+
+        val totalHeightPx = dpToPx(getCurrentKeyboardHeight())
+        val containerParams = keyboardContainer.layoutParams
+        containerParams.height = totalHeightPx
+        keyboardContainer.layoutParams = containerParams
+
+        rows.forEach { row ->
+            val rowLayout = LinearLayout(this).apply {
+                orientation = LinearLayout.HORIZONTAL
+                layoutDirection = View.LAYOUT_DIRECTION_LTR 
+                layoutParams = LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    0, 
+                    row.weight
+                )
+            }
+
+            row.keys.forEach { keyData ->
+                val keyView = All(this).apply {
+                    text = keyData.text
+                    hint = keyData.hint
+                    layoutParams = LinearLayout.LayoutParams(
+                        0, 
+                        ViewGroup.LayoutParams.MATCH_PARENT, 
+                        keyData.weight
+                    )
+                    click = keyData.click
+                    longPress = keyData.longPress
+                    horizontalSwipe = keyData.horizontalSwipe
+                    verticalSwipe = keyData.verticalSwipe
+                    params = keyData.params
+                }
+                rowLayout.addView(keyView)
+            }
+
+            keyboardContainer.addView(rowLayout)
+        }
+
+        // إضافة Navigation Bar
+        if (bottomPaddingDp > 0) {
+            addNavigationBar()
+        }
+        }
+val bottomPaddingDp =15f
+// Data classes للبيانات المحللة
+    private data class KeyboardRow(val weight: Float, val keys: List<KeyData>)
+    private data class KeyData(
+        val text: String,
+        val hint: String,
+        val weight: Float,
+        val click: String,
+        val longPress: String,
+        val horizontalSwipe: String,
+        val verticalSwipe: String,
+        val params: Map<String, Any>
+    )
+
     
     private fun buildKeyboard(jsonString: String) {
         try {
@@ -416,6 +623,56 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
             e.printStackTrace()
         }
     }
+    fun addNavigationBar(){
+        val navBar = LinearLayout(this).apply {
+                    orientation = LinearLayout.HORIZONTAL
+                    layoutParams = LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        dpToPx(bottomPaddingDp) // استخدام القيمة من الإعدادات
+                    )
+                    gravity = Gravity.TOP
+                    setBackgroundColor(Color.parseColor("#1A1A1A"))
+                }
+                
+                 fun createNavBarBtn(textStr: String, onClick: () -> Unit): TextView {
+                    return TextView(this).apply {
+                        text = textStr
+                        textSize = bottomPaddingDp // حجم الخط نسبي للارتفاع
+                        setTextColor(Color.LTGRAY)
+                        includeFontPadding = false 
+                        setPadding(0, 0, 0, 0)
+                        gravity = Gravity.TOP or Gravity.CENTER_HORIZONTAL
+                        layoutParams = LinearLayout.LayoutParams(
+                            dpToPx(50f), 
+                            ViewGroup.LayoutParams.MATCH_PARENT
+                        )
+                        setOnClickListener { 
+                            it.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+                            onClick() 
+                        }
+                    }
+                }
+
+                val switchImeBtn = createNavBarBtn("\u2328") {
+                    val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as android.view.inputmethod.InputMethodManager
+                    imm.showInputMethodPicker()
+                }
+
+                val centerSpace = View(this).apply {
+                    layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1f)
+                    setOnTouchListener { _, _ -> true }
+                }
+
+                val hideKeyboardBtn = createNavBarBtn("\u25BC") {
+                    requestHideSelf(0)
+                }
+
+                navBar.addView(switchImeBtn)
+                navBar.addView(centerSpace)
+                navBar.addView(hideKeyboardBtn)
+
+                keyboardContainer.addView(navBar)
+    }
 
     
     fun switchLang() {
@@ -428,12 +685,15 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
         if (currentAppPackage.isNotEmpty()) {
             appLangDb.setAppLanguage(currentAppPackage, currentLang)
         }
+        Key.capslock.clearListeners()
         
+        Key.isSymbols.value = false
+        Key.capslock.value = 0 
+
         isSymbolsMode = false
         loadKeyboardFromDB(currentLang)
 
-        Key.isSymbols.value = false
-        Key.capslock.value = 0 
+        
     }
 
     fun switchSymbols(ignored: Boolean) {
@@ -495,6 +755,16 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
             ic.deleteSurroundingText(1, 0)
         }
     }
+    fun performSelectAll(){
+        val ic = currentInputConnection ?: return 
+        ic.performContextMenuAction(android.R.id.selectAll)
+        return
+    }
+    fun performContextMenuAction(id: Int){
+        val ic = currentInputConnection ?: return 
+        ic.performContextMenuAction(id)
+        return
+    }
 
     private fun dpToPx(dp: Float): Int {
         val density = resources.displayMetrics.density
@@ -520,9 +790,10 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
             }
         }
 
-        if (::mapper.isInitialized && event != null && mapper.processKey(event)) {
+       /*  if (::mapper.isInitialized && event != null && mapper.processKey(event)) {
             return true
         }
+        */
         
         return super.onKeyDown(keyCode, event)
     }
@@ -533,11 +804,12 @@ class OwnboardIME : InputMethodService(), ClipboardManager.OnPrimaryClipChangedL
                 return true
             }
         }
-
+        /* 
         if (::mapper.isInitialized && event != null && mapper.processKey(event)) {
             return true
         }
-        
+            */
+
         return super.onKeyUp(keyCode, event)
     }
 }

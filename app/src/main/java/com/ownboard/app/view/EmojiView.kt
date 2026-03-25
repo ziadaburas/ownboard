@@ -118,6 +118,19 @@ class EmojiView(context: Context) : FrameLayout(context) {
         viewPager?.setCurrentItem(0, false)
         refreshRecentsList()
     }
+    fun cleanup() {
+        repeatHandler.removeCallbacks(repeatRunnable)
+    }
+
+    // تعديل الـ visibility listener
+    override fun setVisibility(visibility: Int) {
+        super.setVisibility(visibility)
+        
+        if (visibility == View.GONE) {
+            // إيقاف Handler عند الإخفاء
+            repeatHandler.removeCallbacks(repeatRunnable)
+        }
+    }
 
     private fun setupPager() {
         if (viewPager == null) return

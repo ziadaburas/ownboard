@@ -15,16 +15,16 @@
   {
     "height": 55.0,
     "keys": [
-      { "weight": 1.0, "text": "1", "hint": "!", "click": "sendText", "longPress": "showPopup", "verticalSwipe": "sendText", "params": { "text": "1", "vText": "!", "popup": "!" } },
-      { "weight": 1.0, "text": "2", "hint": "@", "click": "sendText", "longPress": "showPopup", "params": { "text": "2", "popup": "@" } },
-      { "weight": 1.0, "text": "3", "hint": "#", "click": "sendText", "longPress": "showPopup", "params": { "text": "3", "popup": "#" } },
-      { "weight": 1.0, "text": "4", "hint": "$", "click": "sendText", "longPress": "showPopup", "params": { "text": "4", "popup": "$" } },
-      { "weight": 1.0, "text": "5", "hint": "%", "click": "sendText", "longPress": "showPopup", "params": { "text": "5", "popup": "%" } },
-      { "weight": 1.0, "text": "6", "hint": "^", "click": "sendText", "longPress": "showPopup", "horizontalSwipe": "switchLang", "params": { "text": "6", "popup": "^" } },
-      { "weight": 1.0, "text": "7", "hint": "&", "click": "sendText", "longPress": "showPopup", "horizontalSwipe": "sendText", "params": { "text": "7", "hText": "cc", "popup": "&" } },
-      { "weight": 1.0, "text": "8", "hint": "*", "click": "sendText", "longPress": "showPopup", "params": { "text": "8", "popup": "*" } },
-      { "weight": 1.0, "text": "9", "hint": "(", "click": "sendText", "longPress": "showPopup", "params": { "text": "9", "popup": "(" } },
-      { "weight": 1.0, "text": "0", "hint": ")", "click": "sendText", "longPress": "showPopup", "params": { "text": "0", "popup": ")" } }
+      { "weight": 1.0, "text": "1", "hint": "١", "click": "sendText", "longPress": "showPopup", "params": { "text": "1", "popup": "١ ¹ ₁" } },
+      { "weight": 1.0, "text": "2", "hint": "٢", "click": "sendText", "longPress": "showPopup", "params": { "text": "2", "popup": "٢ ² ₂ ½" } },
+      { "weight": 1.0, "text": "3", "hint": "٣", "click": "sendText", "longPress": "showPopup", "params": { "text": "3", "popup": "٣ ³ ₃ ⅓ ⅔" } },
+      { "weight": 1.0, "text": "4", "hint": "٤", "click": "sendText", "longPress": "showPopup", "params": { "text": "4", "popup": "٤ ⁴₄ ¼ ¾" } },
+      { "weight": 1.0, "text": "5", "hint": "٥", "click": "sendText", "longPress": "showPopup", "params": { "text": "5", "popup": "٥ ⁵ ₅" } },
+      { "weight": 1.0, "text": "6", "hint": "٦", "click": "sendText", "longPress": "showPopup", "params": { "text": "6", "popup": "٦ ⁶ ₆" } },
+      { "weight": 1.0, "text": "7", "hint": "٧", "click": "sendText", "longPress": "showPopup", "params": { "text": "7", "popup": "٧ ⁷ ₇" } },
+      { "weight": 1.0, "text": "8", "hint": "٨", "click": "sendText", "longPress": "showPopup", "params": { "text": "8", "popup": "٨ ⁸ ₈ ⅛ ⅜ ⅞ ∞" } },
+      { "weight": 1.0, "text": "9", "hint": "٩", "click": "sendText", "longPress": "showPopup", "params": { "text": "9", "popup": "٩ ⁹ ₉" } },
+      { "weight": 1.0, "text": "0", "hint": "٠", "click": "sendText", "longPress": "showPopup", "params": { "text": "0", "popup": "٠ ⁰ ₀ °" } }
     ]
   },
   {
@@ -77,7 +77,7 @@
     "keys": [
       { "weight": 1.5, "text": "123", "click": "switchSymbols", "params": {} },
       { "weight": 1.0, "text": "e", "click": "openEmoji", "params": {} },
-      { "weight": 1.0, "text": ",", "click": "sendText", "params": { "text": "،", "popup": "،" } },
+      { "weight": 1.0, "text": ",", "click": "sendText", "longPress": "showPopup", "params": { "text": ",", "popup": "،" } },
       { "weight": 3.0, "text": "العربية", "hint": "English", "click": "sendText", "horizontalSwipe": "switchLang", "params": { "text": " " } },
       { "weight": 1.0, "text": ".", "click": "sendText", "params": { "text": "." } },
       { "weight": 1.0, "text": "📋", "click": "openClipboard", "params": {} },

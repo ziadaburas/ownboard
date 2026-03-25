@@ -23,6 +23,7 @@ constructor(
     val screenWidth = context.resources.displayMetrics.widthPixels
     val screenHeight = context.resources.displayMetrics.heightPixels
 
+    var bgColor: Int = 0xFF2D2D2D.toInt()
     var onHorizontalSwipeFn: (Int) -> Unit = {}
     var onVerticalSwipeFn: (Int) -> Unit = {}
     
@@ -35,6 +36,7 @@ constructor(
             field = value
             // تم حذف كود popupKeys = ... من هنا
             invalidate()
+            
         }
 
     var btnWidth = 0
@@ -55,12 +57,13 @@ constructor(
     val longPressTimeout: Long
         get() = SettingsManager.getInt("longPressTimeout", 200).toLong()
     var isHoldKey = false
-    val longPressHandler = Handler(Looper.getMainLooper())
+    //val longPressHandler = Handler(Looper.getMainLooper())
+    //var longPressRunnable = Runnable { onLongPress() }
+
     var isLongPressed = false
     var isSpecialKey = false
     var isConstKey = false
-    var longPressRunnable = Runnable { onLongPress() }
-    var bgColor: Int = 0xFF2D2D2D.toInt()
+    
     
     var text = ""
         set(value) {
@@ -117,8 +120,24 @@ constructor(
         val keyPress = ValueListener("")
         val isSymbols = ValueListener(false)
     }
+    // في Key.kt
+    var longPressHandler: Handler? = null
+    var longPressRunnable: Runnable? = null
+
+
+    // إضافة دالة cleanup
+    fun cleanup() {
+        longPressHandler?.removeCallbacksAndMessages(null)
+        longPressHandler = null
+        longPressRunnable = null
+    }
+
+    // في OwnboardIME.kt - في نهاية buildKeyboard()
+   
 
     init {
+        longPressHandler = Handler(Looper.getMainLooper())
+        longPressRunnable = Runnable { onLongPress() }
         initAttributes(attrs)
         inset = dpToPx(2f)
         setWillNotDraw(false)
@@ -162,10 +181,7 @@ constructor(
         val cy = height / 2
         
         canvas.drawColor(Color.TRANSPARENT)
-        rectPaint = Paint().apply {
-            color = bgColor
-            style = Paint.Style.FILL
-        }
+        rectPaint.color = bgColor
         canvas.drawRect(inset, inset, width.toFloat() - inset, height.toFloat() - inset, rectPaint)
         
         _backgroundImg?.let {
@@ -198,7 +214,7 @@ constructor(
 
     open fun actionDown(e: MotionEvent): Boolean {
         isLongPressed = false
-        longPressHandler.postDelayed(longPressRunnable, longPressTimeout)
+        longPressHandler!!.postDelayed(longPressRunnable!!, longPressTimeout)
         isHoldKey = true
         setBackgroundColor(Color.CYAN.toInt())
         
@@ -210,7 +226,7 @@ constructor(
 
     open fun actionUp(e: MotionEvent): Boolean {
         isHoldKey = false
-        longPressHandler.removeCallbacks(longPressRunnable)
+        longPressHandler!!.removeCallbacks(longPressRunnable!!)
         val pressDuration = e.eventTime - e.downTime
         
         if (!isSpecialKey) setBackgroundColor(0xFF2D2D2D.toInt())

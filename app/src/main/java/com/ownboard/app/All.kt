@@ -8,6 +8,8 @@ import android.view.*
 import android.widget.Button
 import android.widget.LinearLayout
 import android.view.HapticFeedbackConstants
+import kotlinx.coroutines.*
+
 
 class All
 @JvmOverloads
@@ -176,12 +178,15 @@ constructor(
                 onLongPressFn = {
                     if (isHoldKey) {
                         onClick()
-                        longPressHandler.postDelayed(longPressRunnable, 50)
+                        longPressHandler!!.postDelayed(longPressRunnable!!, 50)
                     }
                 }
             }
             "switchLang"->{
-                onLongPressFn = { performLangSwitch() }
+                onLongPressFn = { 
+                    OwnboardIME.ime.selectAll()
+                    //performLangSwitch() 
+                }
             }
             "holdSpecial"->{
                 onLongPressFn = { enable(1) }
@@ -345,16 +350,18 @@ constructor(
         return true
     }
     
+
+
     init {
-       val paramsLayout = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1f)
+        val paramsLayout = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1f)
         layoutParams = paramsLayout
-        Key.capslock.addListener { 
+        Key.capslock.addListener {
             if(!isConstKey){
                 if (it != 0) {
                     text = text.uppercase()
-                } else {
+                 } else {
                     text = text.lowercase()
-                }
+                 }
             }
         }
     }

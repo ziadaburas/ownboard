@@ -5,7 +5,7 @@ plugins {
 
 android {
     namespace = "com.ownboard.app"
-    compileSdk = 33
+    compileSdk = 34
 
     buildFeatures {
         viewBinding = true
@@ -18,7 +18,7 @@ android {
     defaultConfig {
         applicationId = "com.ownboard.app"
         minSdk = 24
-        targetSdk = 33
+        targetSdk = 34
         versionCode = 1
         versionName = "1.0"
 
