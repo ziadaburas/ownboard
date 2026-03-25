@@ -18,6 +18,7 @@ import com.ownboard.app.OwnboardIME
 import com.ownboard.app.db.ClipboardDbHelper
 import com.ownboard.app.ui.ClipboardManageActivity
 import com.ownboard.app.utils.SettingsManager
+import com.ownboard.app.R
 import kotlinx.coroutines.* // استيراد مكتبة Coroutines
 
 class ClipboardView @JvmOverloads constructor(
@@ -45,11 +46,13 @@ class ClipboardView @JvmOverloads constructor(
     private lateinit var buttonsContainer: LinearLayout
 
     // الأزرار العلوية
+    // الأزرار العلوية الجديدة
     lateinit var closeBtn: Button
-    lateinit var goToTopBtn: Button
-    lateinit var goToDownBtn: Button
+    lateinit var selectAllBtn: Button 
+    lateinit var copyBtn: Button      // زر النسخ
+    lateinit var pasteBtn: Button     // زر اللصق
     lateinit var settingsBtn: Button
-
+    var cutBtn: Button
     // أزرار الديالوج
     lateinit var closeDialogBtn: Button
     lateinit var copyDialogBtn: Button
@@ -168,6 +171,8 @@ class ClipboardView @JvmOverloads constructor(
         buttonsContainer.addView(deleteDialogBtn)
 
         // 6. أزرار الشريط العلوي
+
+        // 6. أزرار الشريط العلوي
         val btnParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1f)
 
         closeBtn = createTopButton("\u2716", btnParams) {
@@ -178,13 +183,37 @@ class ClipboardView @JvmOverloads constructor(
             }
         }
 
-        goToTopBtn = createTopButton("\u25b2", btnParams) {
-            recyclerView.smoothScrollToPosition(0)
+        // زر تحديد الكل
+        selectAllBtn = createTopButton("", btnParams) {
+            OwnboardIME.ime.performContextMenuAction(android.R.id.selectAll)
+        }.apply {
+            setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_select_all, 0, 0, 0)
+            gravity = Gravity.CENTER
         }
-        goToDownBtn = createTopButton("\u25bc", btnParams) {
-            if (adapter.itemCount > 0) recyclerView.smoothScrollToPosition(adapter.itemCount - 1)
+
+        // زر النسخ
+        copyBtn = createTopButton("", btnParams) {
+            OwnboardIME.ime.performContextMenuAction(android.R.id.copy)
+        }.apply {
+            setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_copy, 0, 0, 0)
+            gravity = Gravity.CENTER
+            
         }
-        
+
+        pasteBtn = createTopButton("", btnParams) { // نص فارغ
+            OwnboardIME.ime.performContextMenuAction(android.R.id.paste)
+        }.apply {
+            setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_paste, 0, 0, 0)
+            gravity = Gravity.CENTER
+        }
+
+        cutBtn = createTopButton("", btnParams) { // نص فارغ
+            OwnboardIME.ime.performContextMenuAction(android.R.id.cut)
+        }.apply {
+            setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_cut, 0, 0, 0)
+            gravity = Gravity.CENTER
+        }
+
         settingsBtn = createTopButton("\u2699", btnParams) {
             try {
                 val intent = Intent(context, ClipboardManageActivity::class.java)
@@ -196,9 +225,12 @@ class ClipboardView @JvmOverloads constructor(
             }
         }
 
+        // إضافة الأزرار إلى الشريط العلوي بالترتيب (من اليمين لليسار أو العكس حسب رغبتك)
         topRow.addView(settingsBtn)
-        topRow.addView(goToDownBtn)
-        topRow.addView(goToTopBtn)
+        topRow.addView(pasteBtn)     // أضفنا زر اللصق
+        topRow.addView(copyBtn)      // أضفنا زر النسخ
+        topRow.addView(cutBtn) // أضفنا زر تحديد الكل
+        topRow.addView(selectAllBtn) // أضفنا زر تحديد الكل
         topRow.addView(closeBtn)
 
         mainLayout.addView(topRow)

@@ -763,7 +763,7 @@ val bottomPaddingDp =15f
     fun performContextMenuAction(id: Int){
         val ic = currentInputConnection ?: return 
         ic.performContextMenuAction(id)
-        return
+        toggleClipboard()
     }
 
     private fun dpToPx(dp: Float): Int {

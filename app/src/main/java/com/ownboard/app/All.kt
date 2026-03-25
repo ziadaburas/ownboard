@@ -184,8 +184,7 @@ constructor(
             }
             "switchLang"->{
                 onLongPressFn = { 
-                    OwnboardIME.ime.selectAll()
-                    //performLangSwitch() 
+                    performLangSwitch() 
                 }
             }
             "holdSpecial"->{
