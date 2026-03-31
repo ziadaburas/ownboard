@@ -686,12 +686,16 @@ val bottomPaddingDp =15f
             appLangDb.setAppLanguage(currentAppPackage, currentLang)
         }
         Key.capslock.clearListeners()
+        Key.ctrl.clearListeners()
+        Key.alt.clearListeners()
+        Key.shift.clearListeners()
         
         Key.isSymbols.value = false
         Key.capslock.value = 0 
 
         isSymbolsMode = false
         loadKeyboardFromDB(currentLang)
+        
 
         
     }

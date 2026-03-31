@@ -9,7 +9,7 @@ import android.widget.Button
 import android.widget.LinearLayout
 import android.view.HapticFeedbackConstants
 import kotlinx.coroutines.*
-
+import android.widget.Toast
 
 class All
 @JvmOverloads
@@ -270,13 +270,19 @@ constructor(
     set(value) {
         field = value
         listener.addListener {
-                if (it == 0) {
+                 if (it == 0) {
                     setBackgroundColor(0xFF2D2D2D.toInt())
-                    disable()
+                     disable()
                 }else {
                     setBackgroundColor(Color.CYAN)
                 }
             }
+        if (listener.value == 0) {
+                    setBackgroundColor(0xFF2D2D2D.toInt())
+                    // disable()
+                }else {
+                    setBackgroundColor(Color.CYAN)
+                }
         }
     var onClickFn = {}
     var onLongPressFn  = {}
@@ -296,8 +302,10 @@ constructor(
     }
     
     fun disable() {
+        if(!isSpecialKey) return 
         val code = getParamInt("code")
         OwnboardIME.ime.sendKeyUp(code)
+        //OwnboardIME.ime.sendKeyPress("# ")
         listener.value = 0
         setBackgroundColor(0xFF2D2D2D.toInt())
     }
