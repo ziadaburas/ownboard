@@ -94,6 +94,11 @@ class OwnboardIME : InputMethodService() {
     override fun onDestroy() {
         super.onDestroy()
         imeScope.cancel()
+        Key.capslock.clearListeners()
+        Key.ctrl.clearListeners()
+        Key.alt.clearListeners()
+        Key.shift.clearListeners()
+        Key.isSymbols.clearListeners()
         if (::emojiBoard.isInitialized) {
             emojiBoard.cleanup()
         }
@@ -442,6 +447,11 @@ class OwnboardIME : InputMethodService() {
 
         // دالة لإنشاء UI (على Main Thread)
         private fun buildKeyboardUI(rows: List<KeyboardRow>) {
+            Key.capslock.clearListeners()
+            Key.ctrl.clearListeners()
+            Key.alt.clearListeners()
+            Key.shift.clearListeners()
+            Key.isSymbols.clearListeners()
         keyboardContainer.removeAllViews()
 
         val totalHeightPx = dpToPx(getCurrentKeyboardHeight())

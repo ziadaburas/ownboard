@@ -6,6 +6,11 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.ownboard.app.db.ClipboardItem
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -17,6 +22,9 @@ class ClipboardManageAdapter(
     private var allItems: List<ClipboardItem> = ArrayList()
     private var displayedItems: List<ClipboardItem> = ArrayList()
     
+    // متغير لحفظ عملية البحث الحالية حتى نتمكن من إلغائها إذا كتب المستخدم بسرعة
+    private var searchJob: Job? = null
+    
     // لتنسيق التاريخ
     private val dateFormatter = SimpleDateFormat("yyyy/MM/dd HH:mm", Locale.getDefault())
 
@@ -26,38 +34,55 @@ class ClipboardManageAdapter(
         notifyDataSetChanged()
     }
 
-    // فلترة بالنص
-    fun filter(query: String, caseSensitive: Boolean) {
-        if (query.isEmpty()) {
-            displayedItems = allItems
-        } else {
-            displayedItems = allItems.filter { item ->
-                if (caseSensitive) {
-                    item.text.contains(query, ignoreCase = false)
-                } else {
-                    item.text.contains(query, ignoreCase = true)
+    // فلترة بالنص (بشكل غير متزامن)
+    // فلترة بالنص (تستقبل دالة عند الانتهاء)
+    fun filter(query: String, caseSensitive: Boolean, onComplete: () -> Unit = {}) {
+        searchJob?.cancel()
+        
+        searchJob = CoroutineScope(Dispatchers.Default).launch {
+            val filteredList = if (query.isEmpty()) {
+                allItems
+            } else {
+                allItems.filter { item ->
+                    if (caseSensitive) {
+                        item.text.contains(query, ignoreCase = false)
+                    } else {
+                        item.text.contains(query, ignoreCase = true)
+                    }
                 }
             }
+
+            withContext(Dispatchers.Main) {
+                displayedItems = filteredList
+                notifyDataSetChanged()
+                onComplete() // استدعاء الدالة لإخفاء شريط التحميل
+            }
         }
-        notifyDataSetChanged()
     }
 
     // فلترة بالتاريخ
-    fun filterByDate(startTime: Long, endTime: Long) {
-        displayedItems = allItems.filter { item ->
-            item.timestamp in startTime..endTime
+    fun filterByDate(startTime: Long, endTime: Long, onComplete: () -> Unit = {}) {
+        searchJob?.cancel()
+        searchJob = CoroutineScope(Dispatchers.Default).launch {
+            val filteredList = allItems.filter { item ->
+                item.timestamp in startTime..endTime
+            }
+            withContext(Dispatchers.Main) {
+                displayedItems = filteredList
+                notifyDataSetChanged()
+                onComplete()
+            }
         }
-        notifyDataSetChanged()
     }
 
     // إعادة عرض الكل
     fun showAll() {
+        searchJob?.cancel()
         displayedItems = allItems
         notifyDataSetChanged()
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ClipViewHolder {
-        // إنشاء Layout للعنصر يحتوي على نصين (المحتوى + التاريخ)
         val container = LinearLayout(parent.context).apply {
             orientation = LinearLayout.VERTICAL
             layoutParams = ViewGroup.MarginLayoutParams(
@@ -81,7 +106,7 @@ class ClipboardManageAdapter(
 
         val tvDate = TextView(parent.context).apply {
             textSize = 12f
-            setTextColor(Color.parseColor("#AAAAAA")) // لون رمادي للتاريخ
+            setTextColor(Color.parseColor("#AAAAAA")) 
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
@@ -99,14 +124,11 @@ class ClipboardManageAdapter(
     override fun onBindViewHolder(holder: ClipViewHolder, position: Int) {
         val item = displayedItems[position]
         
-        // عرض جزء من النص
         val displayStr = if (item.text.length > 100) item.text.substring(0, 100) + "..." else item.text
         holder.tvText.text = displayStr
         
-        // عرض التاريخ
         holder.tvDate.text = dateFormatter.format(Date(item.timestamp))
 
-        // تمييز المثبت
         if (item.isPinned) {
             holder.itemView.setBackgroundColor(Color.parseColor("#3D3D3D"))
         } else {

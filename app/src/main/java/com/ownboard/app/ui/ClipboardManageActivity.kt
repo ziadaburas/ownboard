@@ -14,7 +14,7 @@ import android.widget.CheckBox
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.LinearLayout
-import android.widget.TextView
+import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -32,8 +32,9 @@ class ClipboardManageActivity : Activity() {
     private lateinit var etSearch: EditText
     private lateinit var cbCaseSensitive: CheckBox
     private lateinit var btnFilterDate: ImageButton
+    private lateinit var progressBar: ProgressBar
+    private lateinit var recyclerView: RecyclerView
 
-    // متغيرات لحفظ التواريخ المختارة للفلتر
     private var filterStartTimestamp: Long = 0
     private var filterEndTimestamp: Long = 0
 
@@ -46,8 +47,9 @@ class ClipboardManageActivity : Activity() {
         etSearch = findViewById(R.id.et_search)
         cbCaseSensitive = findViewById(R.id.cb_case_sensitive)
         btnFilterDate = findViewById(R.id.btn_filter_date)
+        progressBar = findViewById(R.id.progress_bar)
+        recyclerView = findViewById(R.id.rv_clipboard_manage)
         
-        val recyclerView = findViewById<RecyclerView>(R.id.rv_clipboard_manage)
         recyclerView.layoutManager = LinearLayoutManager(this)
         
         adapter = ClipboardManageAdapter { item ->
@@ -57,7 +59,6 @@ class ClipboardManageActivity : Activity() {
 
         loadData()
 
-        // مستمع البحث
         etSearch.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(s: Editable?) { performSearch() }
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
@@ -66,7 +67,6 @@ class ClipboardManageActivity : Activity() {
 
         cbCaseSensitive.setOnCheckedChangeListener { _, _ -> performSearch() }
 
-        // مستمع زر الفلتر
         btnFilterDate.setOnClickListener {
             showDateFilterDialog()
         }
@@ -81,25 +81,29 @@ class ClipboardManageActivity : Activity() {
     private fun performSearch() {
         val query = etSearch.text.toString()
         val isCaseSensitive = cbCaseSensitive.isChecked
-        adapter.filter(query, isCaseSensitive)
+        
+        // إخفاء النتائج الحالية وإظهار شريط التحميل
+        recyclerView.visibility = View.INVISIBLE
+        progressBar.visibility = View.VISIBLE
+        
+        adapter.filter(query, isCaseSensitive) {
+            // إظهار النتائج وإخفاء شريط التحميل بعد الانتهاء
+            progressBar.visibility = View.GONE
+            recyclerView.visibility = View.VISIBLE
+        }
     }
 
-    // دالة عرض نافذة الفلتر
     private fun showDateFilterDialog() {
         val context = this
         val layout = LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
-            // تم حذف السطر المسبب للخطأ (padding = 50)
             setPadding(40, 40, 40, 40)
             gravity = Gravity.CENTER_HORIZONTAL
         }
 
         val dateFormatter = SimpleDateFormat("yyyy/MM/dd", Locale.getDefault())
-        
-        // إعداد التاريخ الافتراضي (اليوم)
         val calendar = Calendar.getInstance()
         
-        // أزرار اختيار التاريخ
         val btnStartDate = Button(context).apply { 
             text = "من تاريخ: اضغط للاختيار"
             setTextColor(Color.WHITE)
@@ -124,14 +128,13 @@ class ClipboardManageActivity : Activity() {
             layoutParams = params
         }
 
-        // متغيرات مؤقتة للديالوج
         var tempStart: Long = 0
         var tempEnd: Long = System.currentTimeMillis()
 
         btnStartDate.setOnClickListener {
             val datePickerDialog = DatePickerDialog(context, { _, year, month, day ->
                 val cal = Calendar.getInstance()
-                cal.set(year, month, day, 0, 0, 0) // بداية اليوم
+                cal.set(year, month, day, 0, 0, 0)
                 tempStart = cal.timeInMillis
                 val date = cal.time
                 btnStartDate.text = "من: ${dateFormatter.format(date)}"
@@ -142,7 +145,7 @@ class ClipboardManageActivity : Activity() {
         btnEndDate.setOnClickListener {
             val datePickerDialog = DatePickerDialog(context, { _, year, month, day ->
                 val cal = Calendar.getInstance()
-                cal.set(year, month, day, 23, 59, 59) // نهاية اليوم
+                cal.set(year, month, day, 23, 59, 59)
                 tempEnd = cal.timeInMillis
                 val date = cal.time
                 btnEndDate.text = "إلى: ${dateFormatter.format(date)}"
@@ -158,8 +161,14 @@ class ClipboardManageActivity : Activity() {
             .setView(layout)
             .setPositiveButton("تطبيق") { _, _ ->
                 if (tempStart > 0) {
-                    adapter.filterByDate(tempStart, tempEnd)
-                    Toast.makeText(context, "تم تطبيق الفلتر", Toast.LENGTH_SHORT).show()
+                    recyclerView.visibility = View.INVISIBLE
+                    progressBar.visibility = View.VISIBLE
+                    
+                    adapter.filterByDate(tempStart, tempEnd) {
+                        progressBar.visibility = View.GONE
+                        recyclerView.visibility = View.VISIBLE
+                        Toast.makeText(context, "تم تطبيق الفلتر", Toast.LENGTH_SHORT).show()
+                    }
                 } else {
                     Toast.makeText(context, "الرجاء اختيار تاريخ البداية", Toast.LENGTH_SHORT).show()
                 }
@@ -175,12 +184,27 @@ class ClipboardManageActivity : Activity() {
     private fun showEditDialog(item: ClipboardItem) {
         val editText = EditText(this).apply {
             setText(item.text)
-            setTextColor(Color.BLACK)
             setPadding(40, 40, 40, 40)
             background = null
+            
+            // --- تحديد الكلمة المبحوث عنها ---
+            val query = etSearch.text.toString()
+            if (query.isNotEmpty()) {
+                val isCaseSensitive = cbCaseSensitive.isChecked
+                val startIndex = item.text.indexOf(query, ignoreCase = !isCaseSensitive)
+                
+                if (startIndex != -1) {
+                    setSelection(startIndex, startIndex + query.length)
+                } else {
+                    setSelection(item.text.length)
+                }
+            } else {
+                setSelection(item.text.length)
+            }
         }
 
-        AlertDialog.Builder(this)
+        // 1. نقوم بإنشاء النافذة وحفظها في متغير بدلاً من عرضها مباشرة
+        val dialog = AlertDialog.Builder(this)
             .setTitle("تعديل النص")
             .setView(editText)
             .setPositiveButton("حفظ") { _, _ ->
@@ -201,6 +225,15 @@ class ClipboardManageActivity : Activity() {
                 loadData()
                 Toast.makeText(this, "تم الحذف", Toast.LENGTH_SHORT).show()
             }
-            .show()
+            .create() // نستخدم create() بدلاً من show() هنا
+
+        // 2. نضيف مستمع (Listener) يعمل بمجرد ظهور النافذة للمستخدم
+        dialog.setOnShowListener {
+            // نطلب التركيز على مربع النص ليظهر التحديد فوراً
+            editText.requestFocus()
+        }
+
+        
+        dialog.show()
     }
 }

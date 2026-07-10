@@ -69,7 +69,7 @@ class ClipboardDbHelper(context: Context) : SQLiteOpenHelper(context, "clipboard
         val list = ArrayList<ClipboardItem>()
         val db = readableDatabase
         val cursor = db.rawQuery(
-            "SELECT * FROM clipboard ORDER BY is_pinned DESC, timestamp DESC LIMIT 100", 
+            "SELECT * FROM clipboard ORDER BY is_pinned DESC, timestamp DESC", 
             null
         )
         if (cursor.moveToFirst()) {

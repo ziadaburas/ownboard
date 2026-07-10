@@ -20,7 +20,7 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:layout_marginBottom="8dp">
-
+        
         <EditText
             android:id="@+id/et_search"
             android:layout_width="0dp"
@@ -44,7 +44,7 @@
             android:contentDescription="فلترة بالتاريخ"
             android:tint="#FFFFFF"/>
     </LinearLayout>
-
+    
     <CheckBox
         android:id="@+id/cb_case_sensitive"
         android:layout_width="wrap_content"
@@ -53,9 +53,23 @@
         android:textColor="#CCCCCC"
         android:layout_marginBottom="16dp"/>
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rv_clipboard_manage"
+    <!-- تم إضافة FrameLayout ليحتوي على الـ RecyclerView والـ ProgressBar معاً -->
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+        android:layout_height="match_parent">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_clipboard_manage"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+            
+        <ProgressBar
+            android:id="@+id/progress_bar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:visibility="gone"
+            android:indeterminateTint="#FFFFFF" /> <!-- لون التحميل أبيض ليناسب التصميم الداكن -->
+    </FrameLayout>
 
 </LinearLayout>
