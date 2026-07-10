@@ -3,7 +3,9 @@ package com.ownboard.app.ui
 import android.app.Activity
 import android.app.AlertDialog
 import android.app.DatePickerDialog
+import android.content.Intent
 import android.graphics.Color
+import android.net.Uri
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -21,8 +23,13 @@ import androidx.recyclerview.widget.RecyclerView
 import com.ownboard.app.R
 import com.ownboard.app.db.ClipboardDbHelper
 import com.ownboard.app.db.ClipboardItem
+import org.json.JSONArray
+import org.json.JSONObject
+import java.io.BufferedReader
+import java.io.InputStreamReader
 import java.text.SimpleDateFormat
 import java.util.Calendar
+import java.util.Date
 import java.util.Locale
 
 class ClipboardManageActivity : Activity() {
@@ -37,6 +44,10 @@ class ClipboardManageActivity : Activity() {
 
     private var filterStartTimestamp: Long = 0
     private var filterEndTimestamp: Long = 0
+
+    // أكواد طلب التصاريح للتصدير والاستيراد
+    private val REQUEST_CODE_EXPORT = 201
+    private val REQUEST_CODE_IMPORT = 202
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -70,6 +81,10 @@ class ClipboardManageActivity : Activity() {
         btnFilterDate.setOnClickListener {
             showDateFilterDialog()
         }
+
+        // أزرار الاستيراد والتصدير الجديدة
+        findViewById<Button>(R.id.btn_export_clipboard).setOnClickListener { startExportFile() }
+        findViewById<Button>(R.id.btn_import_clipboard).setOnClickListener { startImportFile() }
     }
 
     private fun loadData() {
@@ -82,16 +97,103 @@ class ClipboardManageActivity : Activity() {
         val query = etSearch.text.toString()
         val isCaseSensitive = cbCaseSensitive.isChecked
         
-        // إخفاء النتائج الحالية وإظهار شريط التحميل
         recyclerView.visibility = View.INVISIBLE
         progressBar.visibility = View.VISIBLE
         
         adapter.filter(query, isCaseSensitive) {
-            // إظهار النتائج وإخفاء شريط التحميل بعد الانتهاء
             progressBar.visibility = View.GONE
             recyclerView.visibility = View.VISIBLE
         }
     }
+
+    // ==========================================
+    // ===== دوال التصدير والاستيراد =====
+    // ==========================================
+
+    private fun startExportFile() {
+        val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
+            addCategory(Intent.CATEGORY_OPENABLE)
+            type = "application/json"
+            val timeString = SimpleDateFormat("yyyyMMdd_HHmm", Locale.getDefault()).format(Date())
+            putExtra(Intent.EXTRA_TITLE, "clipboard_$timeString.json")
+        }
+        startActivityForResult(intent, REQUEST_CODE_EXPORT)
+    }
+
+    private fun startImportFile() {
+        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+            addCategory(Intent.CATEGORY_OPENABLE)
+            type = "application/json"
+        }
+        startActivityForResult(intent, REQUEST_CODE_IMPORT)
+    }
+
+    private fun saveJsonToFile(uri: Uri) {
+        try {
+            val items = dbHelper.getClipboardItems()
+            val jsonArray = JSONArray()
+            
+            for (item in items) {
+                val obj = JSONObject()
+                obj.put("text", item.text)
+                obj.put("isPinned", item.isPinned)
+                obj.put("timestamp", item.timestamp)
+                jsonArray.put(obj)
+            }
+            
+            contentResolver.openOutputStream(uri)?.use { outputStream ->
+                outputStream.write(jsonArray.toString().toByteArray())
+            }
+            Toast.makeText(this, "تم التصدير بنجاح", Toast.LENGTH_SHORT).show()
+        } catch (e: Exception) {
+            Toast.makeText(this, "فشل التصدير", Toast.LENGTH_LONG).show()
+        }
+    }
+
+    private fun readJsonFromFile(uri: Uri) {
+        try {
+            val stringBuilder = StringBuilder()
+            contentResolver.openInputStream(uri)?.use { inputStream ->
+                BufferedReader(InputStreamReader(inputStream)).use { reader ->
+                    var line: String? = reader.readLine()
+                    while (line != null) {
+                        stringBuilder.append(line)
+                        line = reader.readLine()
+                    }
+                }
+            }
+            val jsonString = stringBuilder.toString()
+            val jsonArray = JSONArray(jsonString)
+            
+            for (i in 0 until jsonArray.length()) {
+                val obj = jsonArray.getJSONObject(i)
+                val text = obj.getString("text")
+                val isPinned = obj.optBoolean("isPinned", false)
+                val timestamp = obj.optLong("timestamp", System.currentTimeMillis())
+                
+                dbHelper.importClip(text, isPinned, timestamp)
+            }
+            loadData() // تحديث القائمة بعد الاستيراد
+            Toast.makeText(this, "تم الاستيراد بنجاح", Toast.LENGTH_SHORT).show()
+        } catch (e: Exception) {
+            Toast.makeText(this, "فشل الاستيراد أو صيغة الملف غير صحيحة", Toast.LENGTH_LONG).show()
+            e.printStackTrace()
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (resultCode == Activity.RESULT_OK && data != null) {
+            data.data?.let { uri ->
+                when (requestCode) {
+                    REQUEST_CODE_EXPORT -> saveJsonToFile(uri)
+                    REQUEST_CODE_IMPORT -> readJsonFromFile(uri)
+                }
+            }
+        }
+    }
+    
+    // ==========================================
 
     private fun showDateFilterDialog() {
         val context = this
@@ -187,7 +289,6 @@ class ClipboardManageActivity : Activity() {
             setPadding(40, 40, 40, 40)
             background = null
             
-            // --- تحديد الكلمة المبحوث عنها ---
             val query = etSearch.text.toString()
             if (query.isNotEmpty()) {
                 val isCaseSensitive = cbCaseSensitive.isChecked
@@ -203,7 +304,6 @@ class ClipboardManageActivity : Activity() {
             }
         }
 
-        // 1. نقوم بإنشاء النافذة وحفظها في متغير بدلاً من عرضها مباشرة
         val dialog = AlertDialog.Builder(this)
             .setTitle("تعديل النص")
             .setView(editText)
@@ -225,14 +325,11 @@ class ClipboardManageActivity : Activity() {
                 loadData()
                 Toast.makeText(this, "تم الحذف", Toast.LENGTH_SHORT).show()
             }
-            .create() // نستخدم create() بدلاً من show() هنا
+            .create() 
 
-        // 2. نضيف مستمع (Listener) يعمل بمجرد ظهور النافذة للمستخدم
         dialog.setOnShowListener {
-            // نطلب التركيز على مربع النص ليظهر التحديد فوراً
             editText.requestFocus()
         }
-
         
         dialog.show()
     }

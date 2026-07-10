@@ -95,8 +95,14 @@ class LayoutDatabase(private val context: Context) : SQLiteOpenHelper(context, D
 
     fun resetToDefaultLayouts() {
         val db = this.writableDatabase
+        
+        // 1. مسح جميع البيانات الحالية في الجدول
         db.delete(TABLE_NAME, null, null) 
-        onCreate(db) 
+        
+        // 2. إعادة إدخال البيانات الافتراضية مباشرة (بدون استدعاء onCreate)
+        insertDefaultLayout(db, "ar", loadJSONFromAsset("ar.json"))
+        insertDefaultLayout(db, "en", loadJSONFromAsset("en.json"))
+        insertDefaultLayout(db, "symbols", loadJSONFromAsset("symbols.json"))
     }
     
     // الدالة التي كانت تسبب خطأ Unresolved reference

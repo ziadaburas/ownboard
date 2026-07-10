@@ -19,7 +19,7 @@ import com.ownboard.app.db.ClipboardDbHelper
 import com.ownboard.app.ui.ClipboardManageActivity
 import com.ownboard.app.utils.SettingsManager
 import com.ownboard.app.R
-import kotlinx.coroutines.* // استيراد مكتبة Coroutines
+import kotlinx.coroutines.* 
 
 class ClipboardView @JvmOverloads constructor(
     context: Context,
@@ -31,6 +31,10 @@ class ClipboardView @JvmOverloads constructor(
     var closeClipboardAfterPaste: Boolean = true
         get() = SettingsManager.getBoolean("closeClipboardAfterPaste", true)
 
+    // --- المتغير الجديد للتحكم بموضع التمرير ---
+    var keepScrollPosition: Boolean = false
+        get() = SettingsManager.getBoolean("keepClipboardScrollPosition", false)
+
     // نطاق العمليات الخلفية (Coroutine Scope)
     private val scope = CoroutineScope(Dispatchers.Main + Job())
 
@@ -39,20 +43,21 @@ class ClipboardView @JvmOverloads constructor(
     private lateinit var centerContainer: FrameLayout
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: ClipboardAdapter
+    private lateinit var textScrollView: android.widget.ScrollView
     
     // عناصر الديالوج
-    private lateinit var dialogLayout: LinearLayout // تم تغيير الاسم لتوضيح أنها الحاوية
+    private lateinit var dialogLayout: LinearLayout 
     private lateinit var textViewDialog: TextView
     private lateinit var buttonsContainer: LinearLayout
 
     // الأزرار العلوية
-    // الأزرار العلوية الجديدة
     lateinit var closeBtn: Button
     lateinit var selectAllBtn: Button 
-    lateinit var copyBtn: Button      // زر النسخ
-    lateinit var pasteBtn: Button     // زر اللصق
+    lateinit var copyBtn: Button      
+    lateinit var pasteBtn: Button     
     lateinit var settingsBtn: Button
     var cutBtn: Button
+    
     // أزرار الديالوج
     lateinit var closeDialogBtn: Button
     lateinit var copyDialogBtn: Button
@@ -112,9 +117,21 @@ class ClipboardView @JvmOverloads constructor(
             text = ""
             setTextColor(Color.WHITE)
             textSize = 16f
+            
+            setTextIsSelectable(true) 
+            gravity = Gravity.TOP or Gravity.START
+            setPadding(40, 40, 40, 40)
+            
+            layoutParams = FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                FrameLayout.LayoutParams.WRAP_CONTENT
+            )
+        }
+
+        textScrollView = android.widget.ScrollView(context).apply {
             setBackgroundColor(0xFF2D2D2D.toInt())
-            gravity = Gravity.CENTER
             layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f)
+            addView(textViewDialog)
         }
 
         buttonsContainer = LinearLayout(context).apply {
@@ -131,12 +148,12 @@ class ClipboardView @JvmOverloads constructor(
                 FrameLayout.LayoutParams.MATCH_PARENT,
                 FrameLayout.LayoutParams.MATCH_PARENT
             )
-            addView(textViewDialog)
+            
+            addView(textScrollView) 
             addView(buttonsContainer)
         }
         centerContainer.addView(dialogLayout)
 
-        // بناء أزرار الديالوج
         val dialogBtnParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1f).apply {
             setMargins(2, 2, 2, 2)
         }
@@ -156,21 +173,18 @@ class ClipboardView @JvmOverloads constructor(
                 withContext(Dispatchers.IO) {
                     clipboardDB.deleteText(textToDelete)
                 }
-                refresh() // تحديث القائمة بعد الحذف
+                refresh() 
                 hideDialog()
             }
         }
         
         pinDialogBtn = createDialogButton("تثبيت", dialogBtnParams) {
-            // سيتم تعيين المستمع (Listener) عند فتح الديالوج لأن الحالة تتغير
         }
 
         buttonsContainer.addView(closeDialogBtn)
         buttonsContainer.addView(copyDialogBtn)
         buttonsContainer.addView(pinDialogBtn)
         buttonsContainer.addView(deleteDialogBtn)
-
-        // 6. أزرار الشريط العلوي
 
         // 6. أزرار الشريط العلوي
         val btnParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1f)
@@ -183,7 +197,6 @@ class ClipboardView @JvmOverloads constructor(
             }
         }
 
-        // زر تحديد الكل
         selectAllBtn = createTopButton("", btnParams) {
             OwnboardIME.ime.performContextMenuAction(android.R.id.selectAll)
         }.apply {
@@ -191,23 +204,21 @@ class ClipboardView @JvmOverloads constructor(
             gravity = Gravity.CENTER
         }
 
-        // زر النسخ
         copyBtn = createTopButton("", btnParams) {
             OwnboardIME.ime.performContextMenuAction(android.R.id.copy)
         }.apply {
             setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_copy, 0, 0, 0)
             gravity = Gravity.CENTER
-            
         }
 
-        pasteBtn = createTopButton("", btnParams) { // نص فارغ
+        pasteBtn = createTopButton("", btnParams) { 
             OwnboardIME.ime.performContextMenuAction(android.R.id.paste)
         }.apply {
             setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_paste, 0, 0, 0)
             gravity = Gravity.CENTER
         }
 
-        cutBtn = createTopButton("", btnParams) { // نص فارغ
+        cutBtn = createTopButton("", btnParams) { 
             OwnboardIME.ime.performContextMenuAction(android.R.id.cut)
         }.apply {
             setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_cut, 0, 0, 0)
@@ -225,12 +236,11 @@ class ClipboardView @JvmOverloads constructor(
             }
         }
 
-        // إضافة الأزرار إلى الشريط العلوي بالترتيب (من اليمين لليسار أو العكس حسب رغبتك)
         topRow.addView(settingsBtn)
-        topRow.addView(pasteBtn)     // أضفنا زر اللصق
-        topRow.addView(copyBtn)      // أضفنا زر النسخ
-        topRow.addView(cutBtn) // أضفنا زر تحديد الكل
-        topRow.addView(selectAllBtn) // أضفنا زر تحديد الكل
+        topRow.addView(pasteBtn)     
+        topRow.addView(copyBtn)      
+        topRow.addView(cutBtn) 
+        topRow.addView(selectAllBtn) 
         topRow.addView(closeBtn)
 
         mainLayout.addView(topRow)
@@ -262,12 +272,24 @@ class ClipboardView @JvmOverloads constructor(
 
     fun refresh() {
         scope.launch {
+            // --- حفظ حالة التمرير (Scroll Position) الحالية قبل جلب البيانات ---
+            val layoutManager = recyclerView.layoutManager
+            val savedState = layoutManager?.onSaveInstanceState()
+
             // 1. جلب البيانات في الخلفية
             val items = withContext(Dispatchers.IO) {
                 clipboardDB.getClipboardItems()
             }
+            
             // 2. تحديث الواجهة في الخيط الرئيسي
             adapter.updateList(items)
+
+            // 3. استعادة موضع التمرير أو العودة للأعلى بناءً على الإعدادات
+            if (keepScrollPosition) {
+                layoutManager?.onRestoreInstanceState(savedState)
+            } else {
+                recyclerView.scrollToPosition(0)
+            }
         }
     }
 
@@ -275,11 +297,9 @@ class ClipboardView @JvmOverloads constructor(
         if (text.isBlank()) return
 
         scope.launch {
-            // 1. الحفظ في الخلفية
             withContext(Dispatchers.IO) {
                 clipboardDB.addClip(text)
             }
-            // 2. تحديث القائمة إذا كانت ظاهرة
             if (visibility == View.VISIBLE) {
                 refresh()
             }
@@ -290,7 +310,6 @@ class ClipboardView @JvmOverloads constructor(
         textViewDialog.text = text
         pinDialogBtn.text = if (isPinned) "الغاء التثبيت" else "تثبيت"
         
-        // تحديث وظيفة زر التثبيت لتكون غير متزامنة
         pinDialogBtn.setOnClickListener {
             scope.launch {
                 withContext(Dispatchers.IO) {
@@ -301,6 +320,9 @@ class ClipboardView @JvmOverloads constructor(
             }
         }
         dialogLayout.visibility = View.VISIBLE
+        textScrollView.post {
+            textScrollView.scrollTo(0, 0)
+        }
     }
 
     fun hideDialog() {
@@ -322,7 +344,6 @@ class ClipboardView @JvmOverloads constructor(
         }
     }
 
-    // تنظيف العمليات الخلفية عند تدمير الـ View
     override fun onDetachedFromWindow() {
         super.onDetachedFromWindow()
         scope.cancel()

@@ -15,6 +15,33 @@
         android:textStyle="bold"
         android:layout_marginBottom="16dp"/>
 
+    <!-- أزرار التصدير والاستيراد -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="16dp">
+        
+        <Button
+            android:id="@+id/btn_export_clipboard"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="تصدير"
+            android:layout_marginEnd="8dp"
+            android:backgroundTint="#333333"
+            android:textColor="#FFFFFF"/>
+            
+        <Button
+            android:id="@+id/btn_import_clipboard"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="استيراد"
+            android:backgroundTint="#333333"
+            android:textColor="#FFFFFF"/>
+    </LinearLayout>
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -53,7 +80,6 @@
         android:textColor="#CCCCCC"
         android:layout_marginBottom="16dp"/>
 
-    <!-- تم إضافة FrameLayout ليحتوي على الـ RecyclerView والـ ProgressBar معاً -->
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
@@ -69,7 +95,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:visibility="gone"
-            android:indeterminateTint="#FFFFFF" /> <!-- لون التحميل أبيض ليناسب التصميم الداكن -->
+            android:indeterminateTint="#FFFFFF" /> 
     </FrameLayout>
 
 </LinearLayout>
