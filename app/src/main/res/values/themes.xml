@@ -1,9 +1,24 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
-    <style name="Base.Theme.HelloWorld" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+    <style name="Base.Theme.OwnBoard" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- الألوان الأساسية للتطبيق -->
+        <item name="colorPrimary">@color/own_red</item>
+        <item name="colorOnPrimary">@color/own_light</item>
+        
+        <!-- ألوان الخلفيات -->
+        <item name="android:colorBackground">@color/own_light</item>
+        <item name="colorOnBackground">@color/own_dark</item>
+        
+        <!-- إعداد الخط الافتراضي (يتطلب إضافة خط Poppins مجلد res/font) -->
+        <!-- <item name="android:fontFamily">@font/poppins</item> -->
+        <item name="android:windowBackground">@drawable/logo_ownboard</item>
     </style>
 
-    <style name="Theme.HelloWorld" parent="Base.Theme.HelloWorld" />
+    <style name="Theme.OwnBoard" parent="Base.Theme.OwnBoard" />
+
+    <!-- ثيم مخصص لواجهة الكيبورد نفسها (InputView) -->
+    <style name="OwnBoard.KeyboardTheme" parent="Theme.OwnBoard">
+        <item name="android:background">@color/own_dark</item>
+        <item name="android:textColor">@color/own_light</item>
+    </style>
 </resources>

@@ -45,7 +45,7 @@ class EmojiView(context: Context) : FrameLayout(context) {
         }
     }
     
-    private val colorAccentBlue = ContextCompat.getColor(context, R.color.emoji_accent_blue)
+    private val colorAccentBlue = ContextCompat.getColor(context, R.color.emoji_accent)
     private val colorTextWhite = ContextCompat.getColor(context, R.color.emoji_text_white)
 
     init {

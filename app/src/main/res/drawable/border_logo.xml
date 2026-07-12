@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval"> <!-- استخدم "oval" إذا أردت إطاراً دائرياً، أو "rectangle" إذا أردت مربعاً بزوايا -->
+    
+    <stroke 
+        android:width="3dp" 
+        android:color="#fff" /> <!-- لون الإطار الأحمر -->
+    
+    <solid android:color="#340C0D" /> <!-- شفافية الخلفية -->
+</shape>

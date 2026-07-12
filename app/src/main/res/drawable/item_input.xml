@@ -1,0 +1,22 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:layout_marginBottom="16dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="عنوان الحقل"
+        android:textColor="#A0A0A0"
+        android:textSize="12sp"
+        android:layout_marginStart="8dp"
+        android:layout_marginBottom="4dp"/>
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="55dp"
+        android:background="@drawable/bg_button_stroke"
+        android:padding="15dp"
+        android:textColor="#FFFFFF" />
+</LinearLayout>
