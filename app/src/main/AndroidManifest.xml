@@ -38,7 +38,7 @@
         <activity android:name=".ui.LayoutEditorActivity" />
         <activity android:name=".ui.RowEditorActivity" />
         <activity android:name=".ui.KeyEditorActivity" />
-        <activity android:name=".ui.ClipboardManageActivity" />
+        <activity android:name=".ui.ClipboardManageActivity" android:windowSoftInputMode="adjustPan" />
         <activity android:name=".ui.GlobalSettingsActivity" />
 
     </application>

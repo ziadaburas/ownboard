@@ -3,19 +3,63 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#F5F5F5">
+    android:background="@color/own_background">
 
-    <TextView
-        android:id="@+id/editor_title"
+     <LinearLayout
+        android:id="@+id/layout_header"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="تعديل التخطيط"
-        android:textSize="20sp"
-        android:textStyle="bold"
-        android:gravity="center"
-        android:padding="16dp"
-        android:background="#FFFFFF"
-        android:elevation="4dp"/>
+        android:layout_height="80dp"
+        android:layout_alignParentTop="true"
+        android:background="@drawable/bg_header_gradient"
+        android:gravity="center_vertical"
+        android:layoutDirection="rtl"
+        android:orientation="horizontal"
+        android:paddingHorizontal="16dp">
+        
+        <Space
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1" />
+            
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1" 
+            android:textDirection="rtl"
+            android:orientation="vertical">
+
+            <TextView
+                
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=" تعديل التخطيط"
+                android:gravity="right"                
+                android:textColor="#FFFFFF"
+                android:textSize="20sp"
+                android:layout_gravity="right"
+                android:textStyle="bold" />
+            
+            <TextView
+                android:id="@+id/editor_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text=""
+                android:layout_gravity="right"
+                android:textColor="#DDDDDD"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <ImageView
+            android:id="@+id/img_logo"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:layout_marginStart="16dp" 
+            android:padding="8dp"
+            android:background="@drawable/border_logo"
+            android:src="@drawable/logo_ownboard"
+            android:scaleType="fitCenter" />
+    </LinearLayout>
 
     <ScrollView
         android:layout_width="match_parent"
@@ -34,9 +78,10 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
         android:orientation="horizontal"
-        android:padding="8dp"
-        android:background="#FFFFFF"
+        android:padding="10dp"
+        android:background="@drawable/bg_footer_gradient"
         android:elevation="8dp">
 
         <Button
@@ -45,7 +90,8 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="+ صف"
-            android:backgroundTint="#4CAF50"
+            android:background="@drawable/bg_button_own"
+            android:backgroundTint="#222222"
             android:textColor="#FFFFFF"
             android:layout_marginEnd="4dp"/>
 
@@ -56,6 +102,8 @@
             android:layout_weight="1"
             android:text="تصدير"
             android:textSize="12sp"
+            android:background="@drawable/bg_button_own"
+            android:backgroundTint="#222222"
             android:layout_marginEnd="4dp"/>
 
         <Button
@@ -65,6 +113,8 @@
             android:layout_weight="1"
             android:text="استيراد"
             android:textSize="12sp"
+            android:background="@drawable/bg_button_own"
+            android:backgroundTint="#222222"
             android:layout_marginEnd="4dp"/>
 
         <Button
@@ -74,7 +124,8 @@
             android:layout_weight="1"
             android:text="إعادة"
             android:textSize="12sp"
-            android:backgroundTint="#FF5722"
+            android:background="@drawable/bg_button_own"
+            android:backgroundTint="#222222"
             android:textColor="#FFFFFF"/>
     </LinearLayout>
 

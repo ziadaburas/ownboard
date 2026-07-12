@@ -54,24 +54,33 @@ class ManageLayoutsActivity : Activity() {
         for (i in allLayouts.indices) {
             val lang = allLayouts[i].first
             
-            val button = Button(this).apply {
-                text = "${getLocalizedLayoutName(lang)} ($lang)"
-                textSize = 18f
-                
-                val params = LinearLayout.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.WRAP_CONTENT
-                )
-                params.setMargins(0, 0, 0, 16)
-                layoutParams = params
-
-                setOnClickListener {
-                    val intent = android.content.Intent(this@ManageLayoutsActivity, LayoutEditorActivity::class.java)
-                    // تحديد النوع String صراحة لحل مشكلة putExtra
-                    intent.putExtra("LANG_CODE", lang as String)
-                    startActivity(intent)
-                }
+           val button = Button(this).apply {
+            text = "${getLocalizedLayoutName(lang)} ($lang)"
+            textSize = 18f
+            setTextColor(android.graphics.Color.WHITE) // جعل لون النص أبيض ليتناسب مع الخلفية
+            
+            // --- تصميم الخلفية والانحناء (Border Radius) ---
+            background = android.graphics.drawable.GradientDrawable().apply {
+                shape = android.graphics.drawable.GradientDrawable.RECTANGLE
+                cornerRadius = 100f // درجة الانحناء (Border Radius)
+                setColor(android.graphics.Color.parseColor("#FF2D2D2D")) // لون الخلفية للزر
             }
+            // ----------------------------------------------
+            
+            val params = LinearLayout.LayoutParams(
+                android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+            )
+            params.setMargins(0, 20, 0, 20)
+            layoutParams = params
+
+            setOnClickListener {
+                val intent = android.content.Intent(this@ManageLayoutsActivity, LayoutEditorActivity::class.java)
+                // تحديد النوع String صراحة لحل مشكلة putExtra
+                intent.putExtra("LANG_CODE", lang as String)
+                startActivity(intent)
+            }
+        }
             layoutsContainer.addView(button)
         }
     }

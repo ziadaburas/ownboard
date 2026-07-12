@@ -10,14 +10,29 @@ import androidx.appcompat.app.AppCompatActivity
 import com.ownboard.app.R
 import com.ownboard.app.utils.SettingItem
 import com.ownboard.app.utils.SettingsManager
+import android.view.LayoutInflater // تأكد من استدعاء هذه المكتبة في الأعلى
+
 
 class GlobalSettingsActivity : AppCompatActivity() {
+
+    private lateinit var container: LinearLayout
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_global_settings)
 
-        val container = findViewById<LinearLayout>(R.id.settingsContainer)
+        container = findViewById(R.id.settingsContainer)
+
+        SettingsManager.init(this) 
+
+        // 2. الآن القائمة settingsList ممتلئة، يمكننا بناء الواجهة بأمان
+        buildSettingsViews()
+        
+    }
+
+    private fun buildSettingsViews() {
+        // تنظيف الحاوية أولاً لتجنب التكرار في حال إعادة الرسم
+        container.removeAllViews()
 
         // 1. بناء حقول الإعدادات
         for (item in SettingsManager.settingsList) {
@@ -32,24 +47,15 @@ class GlobalSettingsActivity : AppCompatActivity() {
         }
 
         // 2. إضافة زر "استعادة الافتراضي" في نهاية القائمة
-        val resetBtn = Button(this).apply {
-            text = "استعادة الإعدادات الافتراضية"
-            textSize = 16f
-            setTextColor(Color.WHITE)
-            setBackgroundColor(Color.parseColor("#D32F2F")) // لون أحمر للتحذير
-            
-            layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT, 
-                150 // ارتفاع الزر
-            ).apply {
-                setMargins(20, 50, 20, 50) // هوامش كبيرة لفصله عن البقية
-            }
+       val inflater = LayoutInflater.from(this)
 
-            setOnClickListener {
-                showResetConfirmationDialog()
-            }
+        // نقوم بتمرير container كأب (Parent) مع false، لكي يتم احترام الهوامش (Margins) الموجودة في الـ XML
+        val resetBtn = inflater.inflate(R.layout.item_btn, container, false) as Button
+
+        resetBtn.setOnClickListener {
+            showResetConfirmationDialog()
         }
-        
+
         container.addView(resetBtn)
     }
 
@@ -73,8 +79,73 @@ class GlobalSettingsActivity : AppCompatActivity() {
             .create()
             .show()
     }
+    
+private fun createViewForItem(item: SettingItem): View {
+    val inflater = LayoutInflater.from(this)
 
-    private fun createViewForItem(item: SettingItem): View {
+    return when (item.type) {
+        "boolean" -> {
+            // استدعاء ملف الـ xml الخاص بالـ Switch
+            val view = inflater.inflate(R.layout.item_setting_boolean, null, false)
+            
+            // ربط العناصر
+            val tvLabel = view.findViewById<TextView>(R.id.tvLabel)
+            val switchValue = view.findViewById<Switch>(R.id.switchValue)
+
+            // وضع القيم المبدئية
+            tvLabel.text = item.description
+            val isCheckedInitial = item.value.toString().toBoolean()
+            switchValue.isChecked = isCheckedInitial
+            switchValue.text = if (isCheckedInitial) "مفعل (On)" else "معطل (Off)"
+
+            // إضافة مستمع التغييرات
+            switchValue.setOnCheckedChangeListener { _, isChecked ->
+                switchValue.text = if (isChecked) "مفعل (On)" else "معطل (Off)"
+                SettingsManager.updateValue(item.key, isChecked)
+            }
+            
+            view // إرجاع الواجهة الجاهزة
+        }
+
+        "number", "text" -> {
+            // استدعاء ملف الـ xml الخاص بالحقول النصية
+            val view = inflater.inflate(R.layout.item_setting_input, null, false)
+            
+            // ربط العناصر
+            val tvLabel = view.findViewById<TextView>(R.id.tvLabel)
+            val editValue = view.findViewById<EditText>(R.id.editValue)
+            val btnSave = view.findViewById<Button>(R.id.btnSave)
+
+            // وضع القيم المبدئية
+            tvLabel.text = item.description
+            editValue.setText(item.value.toString())
+            editValue.inputType = if (item.type == "number") {
+                InputType.TYPE_CLASS_NUMBER
+            } else {
+                InputType.TYPE_CLASS_TEXT
+            }
+
+            // إضافة مستمع النقرات لزر الحفظ
+            btnSave.setOnClickListener {
+                val newValue = editValue.text.toString()
+                if (item.type == "number") {
+                    SettingsManager.updateValue(item.key, newValue.toIntOrNull() ?: 0)
+                } else {
+                    SettingsManager.updateValue(item.key, newValue)
+                }
+                Toast.makeText(this, "تم حفظ ${item.key}", Toast.LENGTH_SHORT).show()
+            }
+            
+            view // إرجاع الواجهة الجاهزة
+        }
+
+        else -> {
+            // في حال وجود نوع غير معروف، نعيد حاوية فارغة
+            View(this)
+        }
+    }
+}
+    private fun createViewForItem1(item: SettingItem): View {
         val context = this
         
         // الحاوية الخارجية للعنصر
@@ -84,7 +155,7 @@ class GlobalSettingsActivity : AppCompatActivity() {
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
             )
-            setBackgroundColor(Color.parseColor("#333333"))
+            setBackgroundColor(Color.parseColor("#FF2D2D2D"))
             setPadding(30, 30, 30, 30)
         }
 
@@ -145,8 +216,13 @@ class GlobalSettingsActivity : AppCompatActivity() {
                     }
                 }
 
+                // إضافة أبعاد صريحة لحل مشكلة اختفاء حقول النص والأرقام
                 val inputRow = LinearLayout(context).apply {
                     orientation = LinearLayout.HORIZONTAL
+                    layoutParams = LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT
+                    )
                     addView(editText, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
                     addView(saveBtn)
                 }

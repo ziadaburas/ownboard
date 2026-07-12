@@ -206,10 +206,17 @@ class ClipboardManageActivity : Activity() {
         val dateFormatter = SimpleDateFormat("yyyy/MM/dd", Locale.getDefault())
         val calendar = Calendar.getInstance()
         
+        // تصميم موحد للأزرار الداخلية
+        val innerButtonBackground = android.graphics.drawable.GradientDrawable().apply {
+            shape = android.graphics.drawable.GradientDrawable.RECTANGLE
+            cornerRadius = 15f
+            setColor(Color.parseColor("#FF2D2D2D"))
+        }
+
         val btnStartDate = Button(context).apply { 
             text = "من تاريخ: اضغط للاختيار"
             setTextColor(Color.WHITE)
-            setBackgroundColor(Color.DKGRAY)
+            background = innerButtonBackground // استخدام التصميم الجديد
              val params = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, 
                 LinearLayout.LayoutParams.WRAP_CONTENT
@@ -221,7 +228,7 @@ class ClipboardManageActivity : Activity() {
         val btnEndDate = Button(context).apply { 
             text = "إلى تاريخ: اضغط للاختيار"
             setTextColor(Color.WHITE)
-            setBackgroundColor(Color.DKGRAY)
+            background = innerButtonBackground // استخدام التصميم الجديد
              val params = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, 
                 LinearLayout.LayoutParams.WRAP_CONTENT
@@ -258,8 +265,17 @@ class ClipboardManageActivity : Activity() {
         layout.addView(btnStartDate)
         layout.addView(btnEndDate)
 
-        AlertDialog.Builder(context)
-            .setTitle("فلترة حسب التاريخ")
+        // 1. عنوان مخصص باللون الأبيض
+        val customTitle = android.widget.TextView(context).apply {
+            text = "فلترة حسب التاريخ"
+            setTextColor(Color.WHITE)
+            textSize = 20f
+            setPadding(50, 50, 50, 20)
+            setTypeface(null, android.graphics.Typeface.BOLD)
+        }
+
+        val dialog = AlertDialog.Builder(context)
+            .setCustomTitle(customTitle)
             .setView(layout)
             .setPositiveButton("تطبيق") { _, _ ->
                 if (tempStart > 0) {
@@ -280,14 +296,53 @@ class ClipboardManageActivity : Activity() {
                 etSearch.setText("") 
             }
             .setNegativeButton("إلغاء", null)
-            .show()
-    }
+            .create() // إنشاء بدلاً من العرض المباشر
 
+        // 2. تغيير لون خلفية الدايلوج إلى #222222
+        val dialogBackground = android.graphics.drawable.GradientDrawable().apply {
+            shape = android.graphics.drawable.GradientDrawable.RECTANGLE
+            cornerRadius = 40f
+            setColor(Color.parseColor("#222222"))
+        }
+        dialog.window?.setBackgroundDrawable(dialogBackground)
+
+        // 3. عرض الدايلوج أولاً
+        dialog.show()
+
+        // 4. تغيير ألوان أزرار الأكشن (تطبيق، عرض الكل، إلغاء)
+        val btnPositive = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
+        val btnNegative = dialog.getButton(AlertDialog.BUTTON_NEGATIVE)
+        val btnNeutral = dialog.getButton(AlertDialog.BUTTON_NEUTRAL)
+
+        val buttons = listOf(btnPositive, btnNegative, btnNeutral)
+        for (btn in buttons) {
+            btn?.apply {
+                setTextColor(Color.WHITE) 
+                
+                background = android.graphics.drawable.GradientDrawable().apply {
+                    shape = android.graphics.drawable.GradientDrawable.RECTANGLE
+                    cornerRadius = 15f
+                    setColor(Color.parseColor("#FF2D2D2D"))
+                }
+                
+                val params = layoutParams as LinearLayout.LayoutParams
+                params.setMargins(15, 0, 15, 0)
+                layoutParams = params
+            }
+        }
+    }
     private fun showEditDialog(item: ClipboardItem) {
         val editText = EditText(this).apply {
             setText(item.text)
             setPadding(40, 40, 40, 40)
-            background = null
+            
+            // جعل نص حقل الإدخال أبيض ليتناسب مع الخلفية الداكنة
+            setTextColor(Color.WHITE)
+            background = android.graphics.drawable.GradientDrawable().apply {
+                shape = android.graphics.drawable.GradientDrawable.RECTANGLE
+                cornerRadius = 20f
+                setColor(Color.parseColor("#FF2D2D2D"))
+            }
             
             val query = etSearch.text.toString()
             if (query.isNotEmpty()) {
@@ -304,8 +359,17 @@ class ClipboardManageActivity : Activity() {
             }
         }
 
+        // 1. إنشاء عنوان مخصص ليظهر باللون الأبيض
+        val customTitle = android.widget.TextView(this).apply {
+            text = "تعديل النص"
+            setTextColor(Color.WHITE)
+            textSize = 20f
+            setPadding(50, 50, 50, 20)
+            setTypeface(null, android.graphics.Typeface.BOLD)
+        }
+
         val dialog = AlertDialog.Builder(this)
-            .setTitle("تعديل النص")
+            .setCustomTitle(customTitle) // استخدام العنوان المخصص
             .setView(editText)
             .setPositiveButton("حفظ") { _, _ ->
                 val newText = editText.text.toString()
@@ -327,10 +391,44 @@ class ClipboardManageActivity : Activity() {
             }
             .create() 
 
+        // 2. تغيير لون خلفية الدايلوج إلى #222222 مع زوايا دائرية
+        val dialogBackground = android.graphics.drawable.GradientDrawable().apply {
+            shape = android.graphics.drawable.GradientDrawable.RECTANGLE
+            cornerRadius = 40f
+            setColor(Color.parseColor("#FF2D2D2D"))
+        }
+        dialog.window?.setBackgroundDrawable(dialogBackground)
+
         dialog.setOnShowListener {
             editText.requestFocus()
         }
         
+        // 3. يجب عرض الدايلوج أولاً قبل التعديل على أزراره
         dialog.show()
+
+        // 4. تغيير لون خلفية ونص الأزرار
+        val btnPositive = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
+        val btnNegative = dialog.getButton(AlertDialog.BUTTON_NEGATIVE)
+        val btnNeutral = dialog.getButton(AlertDialog.BUTTON_NEUTRAL)
+
+        val buttons = listOf(btnPositive, btnNegative, btnNeutral)
+        for (btn in buttons) {
+            btn?.apply {
+                setTextColor(Color.WHITE) // لون النص أبيض
+                
+                // إضافة خلفية #FF2D2D2D للأزرار مع زوايا دائرية خفيفة
+                background = android.graphics.drawable.GradientDrawable().apply {
+                    shape = android.graphics.drawable.GradientDrawable.RECTANGLE
+                    cornerRadius = 15f
+                    setColor(Color.parseColor("#222222"))
+                }
+                
+                // إضافة هوامش (Margins) لإبعاد الأزرار عن بعضها قليلاً
+                val params = layoutParams as LinearLayout.LayoutParams
+                params.setMargins(5, 0, 5, 0)
+                layoutParams = params
+            }
+        }
     }
+   
 }

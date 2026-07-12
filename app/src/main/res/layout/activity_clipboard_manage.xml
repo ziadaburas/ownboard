@@ -1,27 +1,164 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- تم تغيير الحاوية الرئيسية إلى RelativeLayout للسماح بتراكب العناصر -->
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="#121212"
-    android:padding="16dp">
+    android:background="@color/own_background"
+  >
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="إدارة الحافظة"
-        android:textColor="#FFFFFF"
-        android:textSize="22sp"
-        android:textStyle="bold"
-        android:layout_marginBottom="16dp"/>
+    <!-- 1. الهيدر (تم تثبيته في الأعلى) -->
+    <LinearLayout
+        android:id="@+id/layout_header"
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:layout_alignParentTop="true"
+        android:background="@drawable/bg_header_gradient"
+        android:gravity="center_vertical"
+        android:layoutDirection="ltr"
+        android:orientation="horizontal"
+        android:paddingHorizontal="16dp">
+        
+        <Space
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1" />
+            
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1" 
+            android:textDirection="rtl"
+            android:orientation="vertical">
 
-    <!-- أزرار التصدير والاستيراد -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="إدارة الحافظة"
+                android:gravity="right"                
+                android:textColor="#FFFFFF"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+            
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text=""
+                android:textColor="#DDDDDD"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <ImageView
+            android:id="@+id/img_logo"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:layout_marginStart="16dp" 
+            android:padding="8dp"
+            android:background="@drawable/border_logo"
+            android:src="@drawable/logo_ownboard"
+            android:scaleType="fitCenter" />
+    </LinearLayout>
+
+    <!-- 2. محتوى الوسط (تم جعله يمتد من تحت الهيدر لآخر الشاشة) -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" 
+        android:layout_below="@id/layout_header"
+        android:orientation="vertical"
+        android:paddingTop="16dp"
+
+        android:paddingHorizontal="16dp"
+        >
+        
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="8dp">
+            
+            <EditText
+                android:id="@+id/et_search"
+                android:layout_width="0dp"
+                android:layout_height="50dp"
+                android:layout_weight="1"
+                android:hint="بحث..."
+                android:textColorHint="#888888"
+                android:textColor="#FFFFFF"
+                android:background="#222222"
+                android:padding="10dp"
+                android:drawableStart="@android:drawable/ic_menu_search"
+                android:drawablePadding="10dp"
+                android:layout_marginEnd="8dp"/>
+
+            <ImageButton
+                android:id="@+id/btn_filter_date"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:src="@android:drawable/ic_menu_my_calendar"
+                android:background="#222222"
+                android:contentDescription="فلترة بالتاريخ"
+                android:tint="#FFFFFF"/>
+        </LinearLayout>
+        
+        <!-- التعديل هنا: محاذاة الـ Checkbox لليمين -->
+       <!-- حاوية أفقية تضمن بقاء النص يساراً والمربع يميناً دائماً -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="right"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="16dp"
+            android:layoutDirection="ltr"> <!-- إجبار الترتيب ليكون ثابتاً -->
+
+            <!-- النص سيكون على اليسار -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="مطابقة حالة الأحرف"
+                android:textColor="#CCCCCC"
+                android:textSize="14sp"/>
+
+            <!-- المربع سيكون على اليمين -->
+            <CheckBox
+                android:id="@+id/cb_case_sensitive"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp" />
+
+        </LinearLayout>
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <!-- إضافة paddingBottom و clipToPadding ليظهر آخر عنصر دون أن يغطيه الفوتر -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rv_clipboard_manage"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:paddingBottom="90dp"
+                android:clipToPadding="false" />
+                
+            <ProgressBar
+                android:id="@+id/progress_bar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:visibility="gone"
+                android:indeterminateTint="#FFFFFF" /> 
+        </FrameLayout>
+    </LinearLayout>
+
+    <!-- 3. الأزرار السفلية (تم تثبيته ليطفو في أسفل الشاشة) -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
         android:orientation="horizontal"
-        android:layout_marginBottom="16dp">
-        
+        android:padding="10dp"
+        android:background="@drawable/bg_footer_gradient">
+            
         <Button
             android:id="@+id/btn_export_clipboard"
             android:layout_width="0dp"
@@ -29,73 +166,18 @@
             android:layout_weight="1"
             android:text="تصدير"
             android:layout_marginEnd="8dp"
-            android:backgroundTint="#333333"
+            android:background="@drawable/bg_button_own"
+            android:backgroundTint="#222222"
             android:textColor="#FFFFFF"/>
-            
+                
         <Button
             android:id="@+id/btn_import_clipboard"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="استيراد"
-            android:backgroundTint="#333333"
+            android:background="@drawable/bg_button_own"
+            android:backgroundTint="#222222"
             android:textColor="#FFFFFF"/>
     </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_marginBottom="8dp">
-        
-        <EditText
-            android:id="@+id/et_search"
-            android:layout_width="0dp"
-            android:layout_height="50dp"
-            android:layout_weight="1"
-            android:hint="بحث..."
-            android:textColorHint="#888888"
-            android:textColor="#FFFFFF"
-            android:background="#2C2C2C"
-            android:padding="10dp"
-            android:drawableStart="@android:drawable/ic_menu_search"
-            android:drawablePadding="10dp"
-            android:layout_marginEnd="8dp"/>
-
-        <ImageButton
-            android:id="@+id/btn_filter_date"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
-            android:src="@android:drawable/ic_menu_my_calendar"
-            android:background="#2C2C2C"
-            android:contentDescription="فلترة بالتاريخ"
-            android:tint="#FFFFFF"/>
-    </LinearLayout>
-    
-    <CheckBox
-        android:id="@+id/cb_case_sensitive"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="مطابقة حالة الأحرف (Case Sensitive)"
-        android:textColor="#CCCCCC"
-        android:layout_marginBottom="16dp"/>
-
-    <FrameLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rv_clipboard_manage"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"/>
-            
-        <ProgressBar
-            android:id="@+id/progress_bar"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:visibility="gone"
-            android:indeterminateTint="#FFFFFF" /> 
-    </FrameLayout>
-
-</LinearLayout>
+</RelativeLayout>

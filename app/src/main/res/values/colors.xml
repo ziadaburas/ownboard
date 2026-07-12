@@ -4,6 +4,7 @@
     <color name="own_dark">#2B2F36</color>
     <color name="own_red">#701921</color>
     <color name="own_light">#F2F2F2</color>
+    <color name="own_background">#121212</color>
 
     <!-- ألوان مساعدة للكيبورد (مشتقة من الهوية) -->
     <color name="own_dark_variant">#1E2126</color> <!-- درجة أغمق بقليل للخلفيات العميقة -->

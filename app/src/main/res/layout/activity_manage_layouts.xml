@@ -3,22 +3,67 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:background="@color/own_background"
+    >
+    <LinearLayout
+        android:id="@+id/layout_header"
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:layout_alignParentTop="true"
+        android:background="@drawable/bg_header_gradient"
+        android:gravity="center_vertical"
+        android:layoutDirection="ltr"
+        android:orientation="horizontal"
+        android:paddingHorizontal="16dp">
+        
+        <Space
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1" />
+            
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1" 
+            android:textDirection="rtl"
+            android:orientation="vertical">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="إدارة التخطيطات"
-        android:textSize="24sp"
-        android:textStyle="bold"
-        android:layout_marginBottom="16dp"
-        android:layout_gravity="center_horizontal"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="إدارة التخطيطات"
+                android:gravity="right"                
+                android:textColor="#FFFFFF"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+            
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text=""
+                android:textColor="#DDDDDD"
+                android:textSize="12sp" />
+        </LinearLayout>
 
+        <ImageView
+            android:id="@+id/img_logo"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:layout_marginStart="16dp" 
+            android:padding="8dp"
+            android:background="@drawable/border_logo"
+            android:src="@drawable/logo_ownboard"
+            android:scaleType="fitCenter" />
+    </LinearLayout>
+   
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:layout_marginBottom="16dp">
+        android:layout_marginBottom="16dp"
+        android:padding="16dp"
+        >
 
         <LinearLayout
             android:id="@+id/layouts_container"
@@ -27,16 +72,26 @@
             android:orientation="vertical"
             android:gravity="center_horizontal"/>
     </ScrollView>
-
-    <Button
-        android:id="@+id/reset_layouts_button"
-        android:layout_width="wrap_content"
+<LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="إعادة تعيين التخطيطات الافتراضية"
-        android:layout_gravity="center_horizontal"
-        android:paddingStart="24dp"
-        android:paddingEnd="24dp"
-        android:paddingTop="12dp"
-        android:paddingBottom="12dp"/>
-
+        android:layout_alignParentBottom="true"
+        android:orientation="horizontal"
+        android:padding="10dp"
+        android:background="@drawable/bg_footer_gradient">
+            
+      
+                
+        <Button
+            android:id="@+id/reset_layouts_button"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="إعادة تعيين التخطيطات الافتراضية"
+            android:background="@drawable/bg_button_own"
+            android:backgroundTint="@color/own_red"
+            android:textColor="#FFFFFF"/>
+            
+    </LinearLayout>
+    
 </LinearLayout>

@@ -132,7 +132,7 @@ class ClipboardManageAdapter(
         if (item.isPinned) {
             holder.itemView.setBackgroundColor(Color.parseColor("#3D3D3D"))
         } else {
-            holder.itemView.setBackgroundColor(Color.parseColor("#2D2D2D"))
+            holder.itemView.setBackgroundColor(Color.parseColor("#222222"))
         }
 
         holder.itemView.setOnClickListener { onItemClick(item) }
