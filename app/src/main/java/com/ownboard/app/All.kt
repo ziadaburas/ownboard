@@ -178,7 +178,9 @@ constructor(
                 "paste" -> OwnboardIME.ime.performContextMenuAction(android.R.id.paste)
                 "selectAll" -> OwnboardIME.ime.performContextMenuAction(android.R.id.selectAll)
                 "clear" -> { 
-                    // سيتم إضافة دالة المسح هنا لاحقاً
+                    OwnboardIME.ime.performContextMenuAction(android.R.id.selectAll)
+                    OwnboardIME.ime.sendKeyPress("")
+
                 }
 
                 // الوظائف الخاصة بالضغط المطول فقط
