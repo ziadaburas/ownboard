@@ -11,6 +11,9 @@ import android.view.HapticFeedbackConstants
 import kotlinx.coroutines.*
 import android.widget.Toast
 
+// تم إضافة هذا الكلاس لتحديد نوع الحدث وتسهيل المركزية
+enum class TriggerType { CLICK, LONG_PRESS, H_SWIPE, V_SWIPE }
+
 class All
 @JvmOverloads
 constructor(
@@ -31,7 +34,12 @@ constructor(
             "delete",        
             "openEmoji",     
             "openClipboard",
-            "openSettings"  
+            "openSettings",
+            "copy",
+            "cut",
+            "paste",
+            "selectAll",
+            "clear"
         )
 
         val LONG_PRESS_FUNCTIONS = listOf(
@@ -46,7 +54,12 @@ constructor(
             "delete",        
             "openEmoji",     
             "openClipboard",
-            "openSettings"  
+            "openSettings",
+            "copy",
+            "cut",
+            "paste",
+            "selectAll",
+            "clear"
         )
 
         val SWIPE_FUNCTIONS = listOf(
@@ -60,6 +73,11 @@ constructor(
             "openClipboard",
             "openSettings",
             "holdSpecial",
+            "copy",
+            "cut",
+            "paste",
+            "selectAll",
+            "clear"
         )
     }
 
@@ -100,228 +118,126 @@ constructor(
         if(code > 0) isConstKey = true 
     }
 
-    var click = ""
-    set(value) {
-        field = value
-        when(value){
-            "sendText"->{
-                onClickFn= {
-                    val txt = getParamString("text")
-                    if(txt.isNotEmpty()) OwnboardIME.ime.sendKeyPress(txt) 
+    // ============================================================
+    // الدالة المركزية لتوزيع الوظائف (Centralized Action Handler)
+    // ============================================================
+    private fun bindAction(actionName: String, trigger: TriggerType): () -> Unit {
+        
+        // 1. إعدادات الواجهة التي تتم بمجرد تعيين الوظيفة (للنقر فقط لتجنب التكرار)
+        if (trigger == TriggerType.CLICK) {
+            when (actionName) {
+                "switchSymbols" -> {
+                    text = if (Key.isSymbols.value == true) "abc" else "123"
+                    Key.isSymbols.addListener { newVal -> text = if (newVal == true) "abc" else "123" }
                 }
+                "openEmoji" -> backgroundImg = R.drawable.ic_emoji
+                "openClipboard" -> backgroundImg = R.drawable.ic_clipboard
             }
-            "sendCode"->{
-                 onClickFn = {
-                    val code = getParamInt("code")
-                    if(code != 0) OwnboardIME.ime.sendKeyPress(code) 
+        }
+
+        // 2. إرجاع دالة التنفيذ التي سيتم استدعاؤها عند وقوع الحدث
+        return {
+            when (actionName) {
+                "sendText" -> {
+                    val key = when (trigger) {
+                        TriggerType.CLICK -> "text"
+                        TriggerType.LONG_PRESS -> if (params.containsKey("lpText")) "lpText" else "text"
+                        TriggerType.H_SWIPE -> if (params.containsKey("hText")) "hText" else "text"
+                        TriggerType.V_SWIPE -> if (params.containsKey("vText")) "vText" else "text"
+                    }
+                    val txt = getParamString(key)
+                    if (txt.isNotEmpty()) OwnboardIME.ime.sendKeyPress(txt)
                 }
-            }
-            "switchSymbols"->{
-                onClickFn = {
+                "sendCode" -> {
+                    val key = when (trigger) {
+                        TriggerType.CLICK -> "code"
+                        TriggerType.LONG_PRESS -> if (params.containsKey("lpCode")) "lpCode" else "code"
+                        TriggerType.H_SWIPE -> if (params.containsKey("hCode")) "hCode" else "code"
+                        TriggerType.V_SWIPE -> if (params.containsKey("vCode")) "vCode" else "code"
+                    }
+                    val code = getParamInt(key)
+                    if (code != 0) OwnboardIME.ime.sendKeyPress(code)
+                }
+                "sendSpecial" -> {
+                    if (trigger == TriggerType.CLICK) {
+                        if (listener.value != 0) disable() else enable()
+                    }
+                }
+                "holdSpecial" -> enable(1)
+                "switchLang" -> performLangSwitch()
+                "switchSymbols" -> {
                     Key.isSymbols.value = !(Key.isSymbols.value)
                     OwnboardIME.ime.switchSymbols(Key.isSymbols.value == true)
                 }
-                text = if (Key.isSymbols.value == true) "abc" else "123"
-                Key.isSymbols.addListener { newVal -> text = if (newVal == true) "abc" else "123" }
-            }
-            "sendSpecial"->{
-                onClickFn = {
-                    if (listener.value != 0) disable() 
-                    else enable()
+                "delete" -> OwnboardIME.ime.delete()
+                "openEmoji" -> OwnboardIME.ime.toggleEmoji()
+                "openClipboard" -> OwnboardIME.ime.toggleClipboard()
+                "openSettings" -> OwnboardIME.ime.openSettings()
+                "copy" -> OwnboardIME.ime.performContextMenuAction(android.R.id.copy)
+                "cut" -> OwnboardIME.ime.performContextMenuAction(android.R.id.cut)
+                "paste" -> OwnboardIME.ime.performContextMenuAction(android.R.id.paste)
+                "selectAll" -> OwnboardIME.ime.performContextMenuAction(android.R.id.selectAll)
+                "clear" -> { 
+                    // سيتم إضافة دالة المسح هنا لاحقاً
                 }
-                onLongPressFn = { enable(1) }
-            }
-            "switchLang"->{
-                onClickFn = {
-                    performLangSwitch()
-                }
-            }
-             "delete"->{
-                onClickFn = {
-                    OwnboardIME.ime.delete() 
-                }
-            }
-            "openEmoji" -> {
-                onClickFn = {
-                    OwnboardIME.ime.toggleEmoji()
-                }
-                backgroundImg = R.drawable.ic_emoji
-            }
-            "openClipboard" -> {
-                onClickFn = {
-                    OwnboardIME.ime.toggleClipboard()
-                }
-                backgroundImg = R.drawable.ic_clipboard
-            }
-            "openSettings" -> {
-                onClickFn = {
-                    OwnboardIME.ime.openSettings()
-                }
-            }
-            else -> { onClickFn={} }
-        }
-    }
 
-    var longPress = ""
-    set(value) {
-        field = value
-        if(click == "sendSpecial") return
-        when(value){
-            "sendText"->{
-                onLongPressFn= {
-                    val txt = if(params.containsKey("lpText")) getParamString("lpText") else getParamString("text")
-                    OwnboardIME.ime.sendKeyPress(txt) 
-                }
-            }
-            "sendCode"->{
-                 onLongPressFn= {
-                    val code = if(params.containsKey("lpCode")) getParamInt("lpCode") else getParamInt("code")
-                    OwnboardIME.ime.sendKeyPress(code) 
-                }
-            }
-            "showPopup"->{
-                onLongPressFn= {
-                    if (popupKeys.isNotEmpty()){
+                // الوظائف الخاصة بالضغط المطول فقط
+                "showPopup" -> {
+                    if (trigger == TriggerType.LONG_PRESS && popupKeys.isNotEmpty()) {
                         isPopupVisible = true
                         showAltChars()
                         selectedIndex = 0
                         highlightButton(selectedIndex)
                     }
                 }
-            }
-            "loop"->{
-                onLongPressFn = {
-                    if (isHoldKey) {
+                "loop" -> {
+                    if (trigger == TriggerType.LONG_PRESS && isHoldKey) {
                         onClick()
                         longPressHandler!!.postDelayed(longPressRunnable!!, 50)
                     }
                 }
             }
-            "switchLang"->{
-                onLongPressFn = { 
-                    performLangSwitch() 
-                }
-            }
-            "holdSpecial"->{
-                onLongPressFn = { enable(1) }
-            }
-            "switchSymbols"->{
-                onLongPressFn = {
-                    Key.isSymbols.value = !(Key.isSymbols.value)
-                    OwnboardIME.ime.switchSymbols(Key.isSymbols.value == true)
-                }
-            }
-            "delete"->{
-                onLongPressFn = {
-                    OwnboardIME.ime.delete() 
-                }
-            }
-            "openEmoji" -> {
-                onLongPressFn = {
-                    OwnboardIME.ime.toggleEmoji()
-                }
-            }
-            "openClipboard" -> {
-                onLongPressFn = {
-                    OwnboardIME.ime.toggleClipboard()
-                }
-            }
-            "openSettings" -> {
-                onLongPressFn = {
-                    OwnboardIME.ime.openSettings()
-                }
-            }
-            else-> onLongPressFn={}
         }
     }
+
+    // ============================================================
+    // تطبيق الوظائف التلقائي باستخدام المركزية
+    // ============================================================
+
+    var click = ""
+        set(value) {
+            field = value
+            // حالة استثنائية كما كانت في الكود القديم
+            if (value == "sendSpecial") onLongPressFn = { enable(1) }
+            onClickFn = bindAction(value, TriggerType.CLICK)
+        }
+
+    var longPress = ""
+        set(value) {
+            field = value
+            if (click == "sendSpecial") return
+            onLongPressFn = bindAction(value, TriggerType.LONG_PRESS)
+        }
 
     var horizontalSwipe = ""
-    set(value) {
-        field = value
-        when(value){
-            "sendText"->{
-                onHorizontalSwipeFn = { _ ->
-                    val txt = if(params.containsKey("hText")) getParamString("hText") else getParamString("text")
-                    if(txt.isNotEmpty()) OwnboardIME.ime.sendKeyPress(txt) 
-                }
-            }
-            "sendCode"->{
-                 onHorizontalSwipeFn = { _ ->
-                    val code = if(params.containsKey("hCode")) getParamInt("hCode") else getParamInt("code")
-                    OwnboardIME.ime.sendKeyPress(code) 
-                }
-            }
-            "switchLang"->{
-                onHorizontalSwipeFn = { performLangSwitch() }
-            }
-            "delete" -> {
-                onHorizontalSwipeFn = { OwnboardIME.ime.delete() }
-            }
-            "holdSpecial"->{
-                 onHorizontalSwipeFn = { enable(1) }
-            }
-            "switchSymbols"->{
-                onHorizontalSwipeFn = {
-                    Key.isSymbols.value = !(Key.isSymbols.value)
-                    OwnboardIME.ime.switchSymbols(Key.isSymbols.value == true)
-                }
-            }
-            "openEmoji" -> {
-                onHorizontalSwipeFn = { OwnboardIME.ime.toggleEmoji() }
-            }
-            "openClipboard" -> {
-                onHorizontalSwipeFn = { OwnboardIME.ime.toggleClipboard() }
-            }
-            "openSettings" -> {
-                onHorizontalSwipeFn = { OwnboardIME.ime.openSettings() }
-            }
-            else-> onHorizontalSwipeFn={}
+        set(value) {
+            field = value
+            val action = bindAction(value, TriggerType.H_SWIPE)
+            // استخدام دالة مغلفة لتتوافق مع البارامتر Float
+            onHorizontalSwipeFn = { _ -> action() }
         }
-    }
 
     var verticalSwipe = ""
-    set(value) {
-        field = value
-        when(value){
-            "sendText"->{
-                onVerticalSwipeFn = { _ ->
-                    val txt = if(params.containsKey("vText")) getParamString("vText") else getParamString("text")
-                    if(txt.isNotEmpty()) OwnboardIME.ime.sendKeyPress(txt) 
-                }
-            }
-            "sendCode"->{
-                 onVerticalSwipeFn = { _ ->
-                    val code = if(params.containsKey("vCode")) getParamInt("vCode") else getParamInt("code")
-                    OwnboardIME.ime.sendKeyPress(code) 
-                }
-            }
-            "switchLang"->{
-                onVerticalSwipeFn = { performLangSwitch() }
-            }
-            "delete" -> {
-                onVerticalSwipeFn = { OwnboardIME.ime.delete() }
-            }
-            "holdSpecial"->{
-                onVerticalSwipeFn = { enable(1) }
-            }
-            "switchSymbols"->{
-                onVerticalSwipeFn = {
-                    Key.isSymbols.value = !(Key.isSymbols.value)
-                    OwnboardIME.ime.switchSymbols(Key.isSymbols.value == true)
-                }
-            }
-            "openEmoji" -> {
-                onVerticalSwipeFn = { OwnboardIME.ime.toggleEmoji() }
-            }
-            "openClipboard" -> {
-                onVerticalSwipeFn = { OwnboardIME.ime.toggleClipboard() }
-            }
-            "openSettings" -> {
-                onVerticalSwipeFn = { OwnboardIME.ime.openSettings() }
-            }
-            else-> onVerticalSwipeFn={}
+        set(value) {
+            field = value
+            val action = bindAction(value, TriggerType.V_SWIPE)
+            // استخدام دالة مغلفة لتتوافق مع البارامتر Float
+            onVerticalSwipeFn = { _ -> action() }
         }
-    }
+
+    // ============================================================
+    // بقية الكود الأساسي بدون أي تغيير
+    // ============================================================
 
     private fun performLangSwitch() {
         OwnboardIME.ime.switchLang()
@@ -354,8 +270,11 @@ constructor(
                     setBackgroundColor(0xFF701921.toInt())
                 }
         }
-    var onClickFn = {}
-    var onLongPressFn  = {}
+    var onClickFn: () -> Unit = {}
+    var onLongPressFn: () -> Unit = {}
+    
+    // تم إزالة تعريف onHorizontalSwipeFn و onVerticalSwipeFn من هنا 
+    // لأنهما معرّفان بالفعل في كلاس Key الأب
     
     override fun onLongPress() {
         if(!isLongPressed) {
