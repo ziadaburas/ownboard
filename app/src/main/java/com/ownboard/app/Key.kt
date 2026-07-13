@@ -216,7 +216,7 @@ constructor(
         isLongPressed = false
         longPressHandler!!.postDelayed(longPressRunnable!!, longPressTimeout)
         isHoldKey = true
-        setBackgroundColor(Color.CYAN.toInt())
+        setBackgroundColor(0xFF701921.toInt())
         
         touchStartX = e.x 
         touchStartY = e.y 

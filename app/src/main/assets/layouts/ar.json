@@ -48,7 +48,7 @@
       { "weight": 1.0, "text": "ش", "hint": "@", "click": "sendText", "longPress": "showPopup", "params": { "text": "ش", "popup": "@ • @gmail.com" } },
       { "weight": 1.0, "text": "س", "hint": "!", "click": "sendText", "longPress": "showPopup", "params": { "text": "س", "popup": "! !=" } },
       { "weight": 1.0, "text": "ي", "hint": "ى ئ", "click": "sendText", "longPress": "showPopup", "params": { "text": "ي", "popup": "ى ئ" } },
-      { "weight": 1.0, "text": "ب", "hint": "?", "click": "sendText", "longPress": "showPopup", "params": { "text": "ب", "popup": "?" } },
+      { "weight": 1.0, "text": "ب", "hint": "؟", "click": "sendText", "longPress": "showPopup", "params": { "text": "ب", "popup": "؟" } },
       { "weight": 1.0, "text": "ل", "hint": "*", "click": "sendText", "longPress": "showPopup", "params": { "text": "ل", "popup": "* **" } },
       { "weight": 1.0, "text": "ا", "hint": "ء أ إ آ", "click": "sendText", "longPress": "showPopup", "params": { "text": "ا", "popup": "ء أ إ آ" } },
       { "weight": 1.0, "text": "ت", "hint": "ـ", "click": "sendText", "longPress": "showPopup", "params": { "text": "ت", "popup": "ـ" } },

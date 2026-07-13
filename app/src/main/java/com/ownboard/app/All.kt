@@ -30,7 +30,8 @@ constructor(
             "switchSymbols", 
             "delete",        
             "openEmoji",     
-            "openClipboard"  
+            "openClipboard",
+            "openSettings"  
         )
 
         val LONG_PRESS_FUNCTIONS = listOf(
@@ -39,17 +40,26 @@ constructor(
             "showPopup",     
             "sendText",
             "sendCode",
-            "switchLang",
-             "holdSpecial"
+            "holdSpecial",
+            "switchLang",    
+            "switchSymbols", 
+            "delete",        
+            "openEmoji",     
+            "openClipboard",
+            "openSettings"  
         )
 
         val SWIPE_FUNCTIONS = listOf(
             "",
             "sendText",
             "sendCode",
-            "switchLang",
-            "delete",
-            "holdSpecial"  
+            "switchLang",    
+            "switchSymbols", 
+            "delete",        
+            "openEmoji",     
+            "openClipboard",
+            "openSettings",
+            "holdSpecial",
         )
     }
 
@@ -143,6 +153,11 @@ constructor(
                 }
                 backgroundImg = R.drawable.ic_clipboard
             }
+            "openSettings" -> {
+                onClickFn = {
+                    OwnboardIME.ime.openSettings()
+                }
+            }
             else -> { onClickFn={} }
         }
     }
@@ -190,6 +205,32 @@ constructor(
             "holdSpecial"->{
                 onLongPressFn = { enable(1) }
             }
+            "switchSymbols"->{
+                onLongPressFn = {
+                    Key.isSymbols.value = !(Key.isSymbols.value)
+                    OwnboardIME.ime.switchSymbols(Key.isSymbols.value == true)
+                }
+            }
+            "delete"->{
+                onLongPressFn = {
+                    OwnboardIME.ime.delete() 
+                }
+            }
+            "openEmoji" -> {
+                onLongPressFn = {
+                    OwnboardIME.ime.toggleEmoji()
+                }
+            }
+            "openClipboard" -> {
+                onLongPressFn = {
+                    OwnboardIME.ime.toggleClipboard()
+                }
+            }
+            "openSettings" -> {
+                onLongPressFn = {
+                    OwnboardIME.ime.openSettings()
+                }
+            }
             else-> onLongPressFn={}
         }
     }
@@ -219,6 +260,21 @@ constructor(
             "holdSpecial"->{
                  onHorizontalSwipeFn = { enable(1) }
             }
+            "switchSymbols"->{
+                onHorizontalSwipeFn = {
+                    Key.isSymbols.value = !(Key.isSymbols.value)
+                    OwnboardIME.ime.switchSymbols(Key.isSymbols.value == true)
+                }
+            }
+            "openEmoji" -> {
+                onHorizontalSwipeFn = { OwnboardIME.ime.toggleEmoji() }
+            }
+            "openClipboard" -> {
+                onHorizontalSwipeFn = { OwnboardIME.ime.toggleClipboard() }
+            }
+            "openSettings" -> {
+                onHorizontalSwipeFn = { OwnboardIME.ime.openSettings() }
+            }
             else-> onHorizontalSwipeFn={}
         }
     }
@@ -242,13 +298,27 @@ constructor(
             "switchLang"->{
                 onVerticalSwipeFn = { performLangSwitch() }
             }
-             "delete" -> {
+            "delete" -> {
                 onVerticalSwipeFn = { OwnboardIME.ime.delete() }
             }
             "holdSpecial"->{
                 onVerticalSwipeFn = { enable(1) }
             }
-           
+            "switchSymbols"->{
+                onVerticalSwipeFn = {
+                    Key.isSymbols.value = !(Key.isSymbols.value)
+                    OwnboardIME.ime.switchSymbols(Key.isSymbols.value == true)
+                }
+            }
+            "openEmoji" -> {
+                onVerticalSwipeFn = { OwnboardIME.ime.toggleEmoji() }
+            }
+            "openClipboard" -> {
+                onVerticalSwipeFn = { OwnboardIME.ime.toggleClipboard() }
+            }
+            "openSettings" -> {
+                onVerticalSwipeFn = { OwnboardIME.ime.openSettings() }
+            }
             else-> onVerticalSwipeFn={}
         }
     }
@@ -274,14 +344,14 @@ constructor(
                     setBackgroundColor(0xFF2D2D2D.toInt())
                      disable()
                 }else {
-                    setBackgroundColor(Color.CYAN)
+                    setBackgroundColor(0xFF701921.toInt())
                 }
             }
         if (listener.value == 0) {
                     setBackgroundColor(0xFF2D2D2D.toInt())
                     // disable()
                 }else {
-                    setBackgroundColor(Color.CYAN)
+                    setBackgroundColor(0xFF701921.toInt())
                 }
         }
     var onClickFn = {}
@@ -445,7 +515,7 @@ constructor(
 
     private fun highlightButton(index: Int) {
         popupBtns.forEachIndexed { i, btn ->
-            btn.setBackgroundColor(if (i == index) Color.CYAN else Color.LTGRAY)
+            btn.setBackgroundColor(if (i == index) 0xFF701921.toInt() else Color.LTGRAY)
         }
     }
     

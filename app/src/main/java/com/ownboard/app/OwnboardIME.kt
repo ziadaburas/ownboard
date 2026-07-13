@@ -1,6 +1,7 @@
 package com.ownboard.app
 
 import android.content.ClipboardManager
+import android.content.Intent
 import android.content.Context
 import android.content.res.Configuration
 import android.inputmethodservice.InputMethodService
@@ -186,6 +187,15 @@ class OwnboardIME : InputMethodService() {
             }
         }
     }
+    fun openSettings() {
+    // استبدل MainActivity باسم شاشة الإعدادات الخاصة بتطبيقك (مثلاً SettingsActivity)
+    val intent = Intent(this, MainActivity::class.java)
+    
+    // هذا الفلاج ضروري جداً عند فتح Activity من داخل Service (مثل لوحة المفاتيح)
+    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    
+    startActivity(intent)
+}
 
     // دالة جلب الارتفاع من الإعدادات العامة
     private fun getCurrentKeyboardHeight(): Float {

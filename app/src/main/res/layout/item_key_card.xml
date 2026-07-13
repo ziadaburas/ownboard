@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
-    android:background="@android:color/white"
+    android:background="@drawable/item_setting"
     android:padding="8dp"
     android:layout_marginBottom="8dp"
     android:elevation="4dp"
@@ -11,8 +11,8 @@
 
     <ImageView
         android:id="@+id/btn_delete_key"
-        android:layout_width="32dp"
-        android:layout_height="32dp"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
         android:src="@android:drawable/ic_menu_delete"
         android:tint="#F44336"
         android:clickable="true"
@@ -21,22 +21,37 @@
 
     <ImageView
         android:id="@+id/btn_edit_key"
-        android:layout_width="32dp"
-        android:layout_height="32dp"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
         android:src="@android:drawable/ic_menu_edit"
-        android:tint="#2196F3"
+        android:tint="#757575"
         android:layout_marginStart="8dp"
         android:clickable="true"
         android:focusable="true"
         android:padding="4dp"/>
 
+    <!-- زر التحريك لليمين (السابق) -->
     <ImageView
-        android:id="@+id/btn_move_key"
-        android:layout_width="32dp"
-        android:layout_height="32dp"
-        android:src="@android:drawable/ic_menu_sort_by_size"
+        android:id="@+id/btn_move_prev"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:src="@android:drawable/ic_media_previous"
         android:tint="#757575"
         android:layout_marginStart="8dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:padding="4dp"/>
+
+    <!-- زر التحريك لليسار (التالي) -->
+    <ImageView
+        android:id="@+id/btn_move_next"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:src="@android:drawable/ic_media_next"
+        android:tint="#757575"
+        android:layout_marginStart="4dp"
+        android:clickable="true"
+        android:focusable="true"
         android:padding="4dp"/>
 
     <View
@@ -52,23 +67,14 @@
 
         <TextView
             android:id="@+id/txt_key_label"
-            android:layout_width="40dp"
+            android:layout_width="wrap_content"
             android:layout_height="40dp"
             android:text="A"
             android:textSize="18sp"
             android:textStyle="bold"
             android:textColor="#FFFFFF"
             android:gravity="center"
-            android:background="#2196F3" 
-            android:layout_marginBottom="4dp"/>
-            
-        <TextView
-            android:id="@+id/txt_key_type"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="All :النوع"
-            android:textSize="12sp"
-            android:textColor="#666666"/>
+            android:layout_marginEnd="20dp"/>
             
         <TextView
             android:id="@+id/txt_key_weight"

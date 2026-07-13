@@ -12,6 +12,8 @@ import com.ownboard.app.db.LayoutDatabase
 import org.json.JSONArray
 import org.json.JSONObject
 import java.util.Collections
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 
 class RowEditorActivity : Activity() {
 
@@ -21,9 +23,9 @@ class RowEditorActivity : Activity() {
     private lateinit var txtRowTitle: TextView
     
     private var langCode: String = ""
-    private var rowIndex: Int = -1 // تغيير الاسم من rowKey إلى rowIndex
+    private var rowIndex: Int = -1
     
-    private var fullJsonArray: JSONArray? = null // تغيير من Object إلى Array
+    private var fullJsonArray: JSONArray? = null
     private var keysList = mutableListOf<JSONObject>()
     private var hasUnsavedChanges = false
 
@@ -32,7 +34,6 @@ class RowEditorActivity : Activity() {
         setContentView(R.layout.activity_row_editor)
 
         langCode = intent.getStringExtra("LANG_CODE") ?: return finish()
-        // نستقبل الرقم كنص ونحوله
         val indexStr = intent.getStringExtra("ROW_KEY") ?: return finish()
         rowIndex = indexStr.toIntOrNull() ?: return finish()
 
@@ -65,7 +66,6 @@ class RowEditorActivity : Activity() {
 
         try {
             fullJsonArray = JSONArray(jsonString)
-            // الوصول للصف عن طريق الـ Index
             val rowObj = fullJsonArray!!.getJSONObject(rowIndex)
             
             val height = rowObj.optDouble("height", 50.0)
@@ -93,48 +93,39 @@ class RowEditorActivity : Activity() {
             val itemView = inflater.inflate(R.layout.item_key_card, keysContainer, false)
             
             val txtLabel = itemView.findViewById<TextView>(R.id.txt_key_label)
-            val txtType = itemView.findViewById<TextView>(R.id.txt_key_type)
             val txtWeight = itemView.findViewById<TextView>(R.id.txt_key_weight)
             val btnDelete = itemView.findViewById<View>(R.id.btn_delete_key)
             val btnEdit = itemView.findViewById<View>(R.id.btn_edit_key)
-            val btnMove = itemView.findViewById<View>(R.id.btn_move_key)
+            val btnMovePrev = itemView.findViewById<View>(R.id.btn_move_prev)
+            val btnMoveNext = itemView.findViewById<View>(R.id.btn_move_next)
 
             val textVal = keyObj.optString("text", "")
             val label = if (textVal.isNotEmpty()) textVal else "زر"
             
             txtLabel.text = label
-            txtType.text = "" 
             txtWeight.text = "الوزن: ${keyObj.optDouble("weight", 1.0)}"
 
             btnDelete.setOnClickListener { confirmDeleteKey(index) }
 
             btnEdit.setOnClickListener {
+                if (hasUnsavedChanges) {
+                    saveRowData()
+                }
                 val intent = Intent(this, KeyEditorActivity::class.java)
                 intent.putExtra("LANG_CODE", langCode)
-                intent.putExtra("ROW_KEY", rowIndex.toString()) // نمرر الـ Index
+                intent.putExtra("ROW_KEY", rowIndex.toString())
                 intent.putExtra("KEY_INDEX", index)
                 startActivity(intent)
             }
 
-            btnMove.setOnClickListener { view -> showMoveMenu(view, index) }
+            // تحريك الزر لليمين (سابق)
+            btnMovePrev.setOnClickListener { moveKey(index, -1) }
+            
+            // تحريك الزر لليسار (تالي)
+            btnMoveNext.setOnClickListener { moveKey(index, 1) }
 
             keysContainer.addView(itemView)
         }
-    }
-
-    private fun showMoveMenu(view: View, index: Int) {
-        val popup = PopupMenu(this, view)
-        popup.menu.add(0, 1, 0, "تحريك لليمين (سابق)")
-        popup.menu.add(0, 2, 0, "تحريك لليسار (تالي)")
-        
-        popup.setOnMenuItemClickListener { item ->
-            when (item.itemId) {
-                1 -> moveKey(index, -1)
-                2 -> moveKey(index, 1)
-            }
-            true
-        }
-        popup.show()
     }
 
     private fun moveKey(currentIndex: Int, direction: Int) {
@@ -147,7 +138,7 @@ class RowEditorActivity : Activity() {
     }
 
     private fun confirmDeleteKey(index: Int) {
-        AlertDialog.Builder(this)
+        val dialog = AlertDialog.Builder(this)
             .setTitle("حذف الزر")
             .setMessage("تأكيد الحذف؟")
             .setPositiveButton("نعم") { _, _ ->
@@ -157,6 +148,10 @@ class RowEditorActivity : Activity() {
             }
             .setNegativeButton("لا", null)
             .show()
+        dialog.window?.setBackgroundDrawable(ColorDrawable(Color.parseColor("#222222")))
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(Color.parseColor("#ffffff"))
+        dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(Color.parseColor("#ffffff"))
+   
     }
 
     private fun addNewKey() {
@@ -164,7 +159,7 @@ class RowEditorActivity : Activity() {
         newKey.put("text", "جديد")
         newKey.put("weight", 1.0)
         newKey.put("click", "sendText")
-        newKey.put("params", JSONObject().put("text", "جديد")) // هيكلة Params الجديدة
+        newKey.put("params", JSONObject().put("text", "جديد")) 
         
         keysList.add(newKey)
         renderKeysList()
@@ -185,7 +180,6 @@ class RowEditorActivity : Activity() {
             keysList.forEach { newKeysArray.put(it) }
             rowObj.put("keys", newKeysArray)
 
-            // تحديث المصفوفة الرئيسية في موقعها
             fullJsonArray!!.put(rowIndex, rowObj)
 
             layoutDatabase.updateLayout(langCode, fullJsonArray!!.toString())

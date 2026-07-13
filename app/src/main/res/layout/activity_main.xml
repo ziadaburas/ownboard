@@ -31,7 +31,7 @@
             android:layout_height="60dp"
             android:layout_marginBottom="15dp"
             android:background="@drawable/bg_button_own"
-            android:drawableEnd="@drawable/ic_clipboard"
+            android:drawableEnd="@android:drawable/ic_menu_sort_alphabetically"
             android:paddingEnd="20dp"
             android:text="التخطيطات"
          />
@@ -53,7 +53,7 @@
             android:layout_width="match_parent"
             android:layout_height="60dp"
             android:background="@drawable/bg_button_own"
-            android:drawableEnd="@drawable/ic_clipboard"
+            android:drawableEnd="@android:drawable/ic_menu_preferences"
             android:paddingEnd="20dp"
             android:text="الإعدادات العامة"
             />

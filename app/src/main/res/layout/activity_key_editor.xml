@@ -3,19 +3,64 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#F5F5F5">
+    android:background="@color/own_background">
 
-    <TextView
-        android:id="@+id/editor_title"
+ 
+        <LinearLayout
+        android:id="@+id/layout_header"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="تعديل الزر"
-        android:textSize="20sp"
-        android:textStyle="bold"
-        android:padding="16dp"
-        android:background="#FFFFFF"
-        android:elevation="4dp"
-        android:gravity="center"/>
+        android:layout_height="80dp"
+        android:layout_alignParentTop="true"
+        android:background="@drawable/bg_header_gradient"
+        android:gravity="center_vertical"
+        android:layoutDirection="rtl"
+        android:orientation="horizontal"
+        android:paddingHorizontal="16dp">
+        
+        <Space
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1" />
+            
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1" 
+            android:textDirection="rtl"
+            android:orientation="vertical">
+
+            <TextView
+                
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=" تعديل المفتاح"
+                android:gravity="right"                
+                android:textColor="#FFFFFF"
+                android:textSize="20sp"
+                android:layout_gravity="right"
+                android:textStyle="bold" />
+            
+            <TextView
+                 android:id="@+id/txt_row_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text=""
+                android:layout_gravity="right"
+                android:textColor="#DDDDDD"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <ImageView
+            android:id="@+id/img_logo"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:layout_marginStart="16dp" 
+            android:padding="8dp"
+            android:background="@drawable/border_logo"
+            android:src="@drawable/logo_ownboard"
+            android:scaleType="fitCenter" />
+    </LinearLayout>
 
     <ScrollView
         android:layout_width="match_parent"
@@ -26,49 +71,53 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:padding="16dp" 
+           >
 
             <TextView 
                 android:text="البيانات الأساسية" 
                 android:textStyle="bold" 
                 android:layout_width="wrap_content" 
                 android:layout_height="wrap_content" 
-                android:layout_marginBottom="8dp"/>
+                android:layout_marginBottom="8dp"
+                android:layout_gravity="right" />
                 
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:weightSum="3">
-                <EditText android:id="@+id/input_text" android:hint="النص" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:background="@android:drawable/editbox_background" android:padding="10dp" android:layout_marginEnd="4dp"/>
-                <EditText android:id="@+id/input_hint" android:hint="تلميح" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:background="@android:drawable/editbox_background" android:padding="10dp" android:layout_marginEnd="4dp"/>
-                <EditText android:id="@+id/input_weight" android:hint="الوزن" android:inputType="numberDecimal" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:background="@android:drawable/editbox_background" android:padding="10dp"/>
+                <EditText android:id="@+id/input_text" android:hint="النص" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:background="@drawable/item_input" android:padding="10dp" android:layout_marginEnd="4dp"/>
+                <EditText android:id="@+id/input_hint" android:hint="تلميح" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:background="@drawable/item_input" android:padding="10dp" android:layout_marginEnd="4dp"/>
+                <EditText android:id="@+id/input_weight" android:hint="الوزن" android:inputType="numberDecimal" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:background="@drawable/item_input" android:padding="10dp"/>
             </LinearLayout>
 
-            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#CCCCCC" android:layout_marginTop="16dp" android:layout_marginBottom="16dp"/>
+            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@android:color/transparent" android:layout_marginTop="16dp" android:layout_marginBottom="16dp"/>
 
             <TextView 
                 android:text="عند النقر (Click)" 
                 android:textStyle="bold" 
-                android:textColor="#2196F3" 
+               
                 android:layout_width="wrap_content" 
                 android:layout_height="wrap_content" 
-                android:layout_marginBottom="8dp"/>
+                android:layout_marginBottom="8dp"
+                android:layout_gravity="right" />
                 
-            <Spinner android:id="@+id/spinner_click" android:layout_width="match_parent" android:layout_height="50dp" android:background="@android:drawable/btn_dropdown" android:layout_marginBottom="8dp"/>
+            <Spinner android:id="@+id/spinner_click" android:layout_width="match_parent" android:layout_height="50dp" android:background="#FF2D2D2D" android:layout_marginBottom="8dp"/>
             
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
                 <EditText android:id="@+id/input_text_click" android:hint="text param" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="4dp" android:textSize="14sp"/>
                 <EditText android:id="@+id/input_code_click" android:hint="code param" android:inputType="numberSigned" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textSize="14sp"/>
             </LinearLayout>
 
-            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#CCCCCC" android:layout_marginTop="16dp" android:layout_marginBottom="16dp"/>
+            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@android:color/transparent" android:layout_marginTop="16dp" android:layout_marginBottom="16dp"/>
 
             <TextView 
                 android:text="عند الضغط المطول" 
                 android:textStyle="bold" 
-                android:textColor="#FF5722" 
                 android:layout_width="wrap_content" 
                 android:layout_height="wrap_content" 
-                android:layout_marginBottom="8dp"/>
+                android:layout_marginBottom="8dp"
+                android:layout_gravity="right"
+                />
                 
-            <Spinner android:id="@+id/spinner_long_press" android:layout_width="match_parent" android:layout_height="50dp" android:background="@android:drawable/btn_dropdown" android:layout_marginBottom="8dp"/>
+            <Spinner android:id="@+id/spinner_long_press" android:layout_width="match_parent" android:layout_height="50dp" android:background="#FF2D2D2D" android:layout_marginBottom="8dp"/>
             
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
                 <EditText android:id="@+id/input_text_long" android:hint="lpText param" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="4dp" android:textSize="14sp"/>
@@ -83,17 +132,18 @@
                 android:layout_marginTop="8dp"
                 android:textSize="14sp"/>
 
-            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#CCCCCC" android:layout_marginTop="16dp" android:layout_marginBottom="16dp"/>
+            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@android:color/transparent" android:layout_marginTop="16dp" android:layout_marginBottom="16dp"/>
 
             <TextView 
                 android:text="سحب أفقي (Horizontal)" 
-                android:textStyle="bold" 
-                android:textColor="#4CAF50" 
+                android:textStyle="bold"
                 android:layout_width="wrap_content" 
                 android:layout_height="wrap_content" 
-                android:layout_marginBottom="8dp"/>
+                android:layout_marginBottom="8dp"
+                android:layout_gravity="right"
+                />
             
-            <Spinner android:id="@+id/spinner_horizontal" android:layout_width="match_parent" android:layout_height="50dp" android:background="@android:drawable/btn_dropdown" android:layout_marginBottom="8dp"/>
+            <Spinner android:id="@+id/spinner_horizontal" android:layout_width="match_parent" android:layout_height="50dp" android:background="#FF2D2D2D" android:layout_marginBottom="8dp"/>
             
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="12dp">
                 <EditText android:id="@+id/input_text_horizontal" android:hint="hText param" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="4dp" android:textSize="14sp"/>
@@ -103,12 +153,13 @@
             <TextView 
                 android:text="سحب عمودي (Vertical)" 
                 android:textStyle="bold" 
-                android:textColor="#9C27B0" 
                 android:layout_width="wrap_content" 
                 android:layout_height="wrap_content" 
-                android:layout_marginBottom="8dp"/>
+                android:layout_marginBottom="8dp"
+                android:layout_gravity="right"
+                />
 
-            <Spinner android:id="@+id/spinner_vertical" android:layout_width="match_parent" android:layout_height="50dp" android:background="@android:drawable/btn_dropdown" android:layout_marginBottom="8dp"/>
+            <Spinner android:id="@+id/spinner_vertical" android:layout_width="match_parent" android:layout_height="50dp" android:background="#FF2D2D2D" android:layout_marginBottom="8dp"/>
             
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
                 <EditText android:id="@+id/input_text_vertical" android:hint="vText param" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="4dp" android:textSize="14sp"/>
@@ -117,15 +168,24 @@
 
         </LinearLayout>
     </ScrollView>
+     <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="12dp"
+        android:background="@drawable/bg_footer_gradient"
+        android:elevation="16dp">
 
     <Button
         android:id="@+id/btn_save_key"
         android:layout_width="match_parent"
-        android:layout_height="60dp"
+        android:layout_height="wrap_content"
         android:text="حفظ التعديلات"
         android:textSize="18sp"
-        android:backgroundTint="#2196F3"
+        android:background="@drawable/bg_button_own"
+            android:backgroundTint="#222222"
         android:textColor="#FFFFFF"
-        android:layout_margin="16dp"/>
+     />
 
+</LinearLayout>
 </LinearLayout>

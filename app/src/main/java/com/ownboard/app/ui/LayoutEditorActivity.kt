@@ -16,6 +16,8 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.io.BufferedReader
 import java.io.InputStreamReader
+import android.graphics.drawable.ColorDrawable
+import android.content.res.ColorStateList
 
 class LayoutEditorActivity : Activity() {
 
@@ -95,14 +97,16 @@ class LayoutEditorActivity : Activity() {
                 LinearLayout.LayoutParams.WRAP_CONTENT
             ).apply { setMargins(0, 0, 0, dpToPx(8)) }
             setPadding(dpToPx(12), dpToPx(12), dpToPx(12), dpToPx(12))
-            setBackgroundColor(Color.WHITE)
+            setBackgroundColor(0xFF2F2F2F.toInt())
             elevation = dpToPx(2).toFloat()
             gravity = Gravity.CENTER_VERTICAL
         }
 
         val txtTitle = TextView(this).apply {
             text = "الصف رقم ${index + 1}"
+            setPadding(0, 0, 100, 0)
             textSize = 18f
+            setTextColor(Color.WHITE)
             setTypeface(null, Typeface.BOLD)
             layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
         }
@@ -111,6 +115,7 @@ class LayoutEditorActivity : Activity() {
         rowLayout.addView(txtTitle)
         
         // زر التحريك للأعلى
+        /*
         if (index > 0) {
             val btnUp = createActionButton("▲") { moveRow(index, -1) }
             rowLayout.addView(btnUp)
@@ -121,7 +126,7 @@ class LayoutEditorActivity : Activity() {
             val btnDown = createActionButton("▼") { moveRow(index, 1) }
             rowLayout.addView(btnDown)
         }
-
+        */
         // زر الحذف
         val btnDelete = createActionButton("❌") { confirmDeleteRow(index) }
         btnDelete.setTextColor(Color.RED)
@@ -134,9 +139,11 @@ class LayoutEditorActivity : Activity() {
     
     private fun createActionButton(text: String, onClick: () -> Unit): TextView {
         return TextView(this).apply {
-            this.text = text
+            this.text = ""
             textSize = 20f
-            setPadding(dpToPx(12), 0, dpToPx(12), 0)
+            //setPadding(dpToPx(12), 0, dpToPx(12), 0)
+            setBackgroundResource(android.R.drawable.ic_menu_delete)
+            backgroundTintList = ColorStateList.valueOf(Color.parseColor("#F44336"))
             setOnClickListener { onClick() }
         }
     }
@@ -161,7 +168,7 @@ class LayoutEditorActivity : Activity() {
     }
 
     private fun confirmDeleteRow(index: Int) {
-        AlertDialog.Builder(this)
+        val dialog = AlertDialog.Builder(this)
             .setTitle("حذف الصف")
             .setMessage("هل أنت متأكد من حذف الصف ${index + 1}؟")
             .setPositiveButton("حذف") { _, _ ->
@@ -171,9 +178,12 @@ class LayoutEditorActivity : Activity() {
             }
             .setNegativeButton("إلغاء", null)
             .show()
+
+        dialog.window?.setBackgroundDrawable(ColorDrawable(Color.parseColor("#222222")))
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(Color.parseColor("#ffffff"))
+        dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(Color.parseColor("#ffffff"))
     }
-    
-    private fun moveRow(index: Int, direction: Int) {
+        private fun moveRow(index: Int, direction: Int) {
         val newIndex = index + direction
         if (newIndex in 0 until jsonArray.length()) {
             val temp = jsonArray.get(index)
